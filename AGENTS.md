@@ -5,6 +5,22 @@ Expo / React Native (iOS, Android, web) + TypeScript, backed by Supabase
 (Postgres + Auth + Storage + Edge Functions). See `.opencode/PROJECT.md` for the
 full picture and `.opencode/STANDARDS.md` for the coding conventions.
 
+## Workflow — plan first, then act
+
+- **Every chat starts with a plan.** Before editing files or running anything
+  that changes state, present a short, concrete plan (steps + affected files)
+  and stop.
+- **No edits without explicit written approval.** Wait for the user to write an
+  approval ("yes", "go ahead", "execute the plan", "approved"). A question, a
+  comment, or silence is **not** approval.
+- **Stay in scope.** Once approved, do exactly that plan. If the scope changes,
+  stop and present a new plan before continuing.
+- **Read-only work needs no approval.** Reading, searching, listing and
+  read-only commands are always fine.
+- This rule is stricter than the permission config (`opencode.json`): even when
+  a tool is allowed there, do not act until the user approves the plan in
+  writing.
+
 ## Commands
 
 - `make help` — list every target
