@@ -5,6 +5,7 @@ import {
   type NewFlashcard,
   type SwipeDirection,
 } from "../types/flashcard";
+import { toFlashcardStats, type FlashcardStats } from "../types/stats";
 
 /** Cards ordered by weighted random sampling (heavier cards first). */
 export async function fetchStudyQueue(limit = 20): Promise<Flashcard[]> {
@@ -75,4 +76,15 @@ export async function listFlashcards(): Promise<Flashcard[]> {
   }
 
   return (data ?? []).map(toFlashcard);
+}
+
+/** Aggregated progress for the signed-in user (totals plus per-tag). */
+export async function fetchFlashcardStats(): Promise<FlashcardStats> {
+  const { data, error } = await getSupabase().rpc("get_flashcard_stats");
+
+  if (error) {
+    throw new Error(`Failed to load stats: ${error.message}`);
+  }
+
+  return toFlashcardStats(data ?? {});
 }

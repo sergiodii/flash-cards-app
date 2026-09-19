@@ -20,8 +20,8 @@ export function StudyScreen() {
 
   return (
     <View style={styles.container}>
-      <View style={[styles.header, { paddingTop: insets.top + spacing.md }]}>
-        <Text style={styles.title}>{strings.appName}</Text>
+      <View style={styles.header}>
+        <Text style={styles.headerLabel}>{strings.study.session}</Text>
         <View style={styles.stats}>
           <StatPill value={stats.left} color={colors.danger} />
           <StatPill value={stats.right} color={colors.success} />
@@ -110,12 +110,15 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: spacing.lg,
-    paddingBottom: spacing.md,
+    paddingTop: spacing.md,
+    paddingBottom: spacing.sm,
   },
-  title: {
-    color: colors.text,
-    fontSize: typography.subtitle,
-    fontWeight: "800",
+  headerLabel: {
+    color: colors.textMuted,
+    fontSize: 12,
+    fontWeight: "700",
+    letterSpacing: 1,
+    textTransform: "uppercase",
   },
   stats: {
     flexDirection: "row",

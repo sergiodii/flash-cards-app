@@ -97,6 +97,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_flashcard_stats: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
       flashcard_weight: {
         Args: { p_left_count: number; p_right_count: number }
         Returns: number
