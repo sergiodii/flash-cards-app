@@ -12,6 +12,7 @@
     "lint": "expo lint",
     "test": "jest --passWithNoTests",
     "test:watch": "jest --watch",
+    "test-audio": "node --env-file-if-exists=.env test-audio.mjs",
     "export:web": "expo export --platform web",
     "supabase:start": "supabase start",
     "supabase:stop": "supabase stop",
@@ -48,6 +49,7 @@
     "react-native-worklets": "0.10.1"
   },
   "devDependencies": {
+    "@openrouter/sdk": "^1.3.6",
     "@react-native/jest-preset": "0.86.3",
     "@testing-library/react-native": "^14.0.1",
     "@types/jest": "^30.0.0",

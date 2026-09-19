@@ -2110,6 +2110,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@openrouter/sdk@npm:^1.3.6":
+  version: 1.3.6
+  resolution: "@openrouter/sdk@npm:1.3.6"
+  dependencies:
+    zod: "npm:^3.25.0 || ^4.0.0"
+  checksum: 10c0/55ebc6d056cf6085e0f97c18e4f95b161715a2367a5a6c8752a2661c1cace1d8ff320e5bc8ddcc3c82f1c7e59ac86a17501a4983a0b12ee2580dd52826d88987
+  languageName: node
+  linkType: hard
+
 "@react-native-async-storage/async-storage@npm:2.2.0":
   version: 2.2.0
   resolution: "@react-native-async-storage/async-storage@npm:2.2.0"
@@ -5445,6 +5454,7 @@ __metadata:
   resolution: "flash-cards-app@workspace:."
   dependencies:
     "@expo/metro-runtime": "npm:~57.0.16"
+    "@openrouter/sdk": "npm:^1.3.6"
     "@react-native-async-storage/async-storage": "npm:2.2.0"
     "@react-native/jest-preset": "npm:0.86.3"
     "@react-navigation/drawer": "npm:^7.14.2"

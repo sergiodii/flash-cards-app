@@ -25,7 +25,7 @@ LOAD_ENV = set -a; [ -f ./.env ] && . ./.env; set +a;
 .PHONY: help setup install env start web android ios typecheck lint test validate \
         export.web db.start db.stop db.status db.reset db.link db.unlink db.push \
         db.push.seed db.pull db.lint db.migration db.types db.new db.clean clean \
-        fn.serve fn.deploy fn.secrets
+        fn.serve fn.deploy fn.secrets test-audio
 
 ## ---------------------------------------------------------------------------
 ## Help
@@ -134,6 +134,12 @@ fn.deploy: ## Deploy edge functions to the linked project
 
 fn.secrets: ## Push server secrets (OPENROUTER_API_KEY) to the linked project
 	@$(LOAD_ENV) npx supabase secrets set OPENROUTER_API_KEY="$$OPENROUTER_API_KEY"
+
+## ---------------------------------------------------------------------------
+## Smoke tests
+## ---------------------------------------------------------------------------
+test-audio: ## Synthesize a test phrase with OpenRouter and save it in the root
+	yarn test-audio
 
 ## ---------------------------------------------------------------------------
 ## Housekeeping

@@ -47,6 +47,9 @@ yarn-error.*
 # test / coverage
 coverage/
 
+# generated smoke-test audio
+test-audio.mp3
+
 # typescript
 *.tsbuildinfo
 
