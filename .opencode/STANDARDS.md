@@ -21,7 +21,7 @@ screens / components / navigation
         ↓
 hooks / context
         ↓
-services          (the only place that talks to Supabase)
+services          (the only place that talks to Supabase, Storage and edge functions)
         ↓
 lib / config
         ↓
@@ -56,6 +56,11 @@ The weight formula exists in exactly two places, intentionally:
 
 If you change one, change and test the other. `src/domain/repetition.test.ts`
 locks the TS behaviour.
+
+The tag filter is split the same way: `next_flashcards(p_limit, p_tags)` applies
+the overlap (`tags && p_tags`) when the selection is non-empty, while the pure
+selection/toggle rules live in `src/domain/tagSelection.ts` and are locked by
+`tagSelection.test.ts`.
 
 ## UI and styling
 
@@ -92,6 +97,21 @@ locks the TS behaviour.
 - Run `make db.reset` then `make db.types` after schema changes, and keep
   `seed.sql` idempotent.
 
+## Edge functions and storage
+
+- Deno functions live in `supabase/functions/<name>/index.ts`; shared helpers go
+  in `supabase/functions/_shared/`.
+- The gateway verifies the JWT, but the function still calls
+  `admin.auth.getUser(token)` and takes the `user_id` from the token — never
+  from the request body. The service role is used only for the trusted write and
+  always scoped to that verified id.
+- Card audio is a private object in the `flash-app` bucket
+  (`audios/<user_id>/<id>.mp3`). The app never stores a public URL; it mints a
+  short-lived signed URL on demand (`services/storage.ts`). Storage RLS only
+  allows reading your own `audios/<auth.uid()>/...` folder.
+- `OPENROUTER_API_KEY` is a server secret read via `Deno.env.get` inside the
+  function only.
+
 ## Errors
 
 - Services wrap Supabase errors in `new Error("<action>: <message>")`.
@@ -102,7 +122,8 @@ locks the TS behaviour.
 ## Tests
 
 - Tests live next to the code as `*.test.ts` and target **pure logic and
-  mappers** (`domain/repetition`, `types/flashcard`, `types/stats`).
+  mappers** (`domain/repetition`, `domain/tagSelection`, `types/flashcard`,
+  `types/stats`, `types/preferences`).
 - Use `describe` / `it` with behaviour-focused names; prefer table-like explicit
   cases over clever abstractions.
 - Quiet local runs: `yarn test --no-coverage -q` (or `make test`).
@@ -113,6 +134,8 @@ locks the TS behaviour.
   anon key belong there. The anon key is public; RLS is what protects data.
 - `SUPABASE_ACCESS_TOKEN`, `SUPABASE_PROJECT_ID`, `SUPABASE_DB_PASSWORD` and any
   service-role key are CLI/server-only and must never reach the app bundle.
+  `OPENROUTER_API_KEY` is likewise a server secret, pushed with
+  `make fn.secrets` and read only inside the edge function.
 - Never commit `.env`; keep `.env.example` in sync with new variables.
 - Access control relies on `auth.uid()`-scoped RLS — do not add policies that
   bypass it or query the database in ways that do.
