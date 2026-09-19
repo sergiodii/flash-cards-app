@@ -26,6 +26,12 @@ npm-debug.*
 yarn-debug.*
 yarn-error.*
 
+# yarn
+.yarn/install-state.gz
+.yarn/build-state.yml
+.yarn/cache/
+.yarn/unplugged/
+
 # macOS
 .DS_Store
 *.pem

@@ -40,7 +40,7 @@ help: ## Show this help
 setup: install env ## Install dependencies and create .env from the example
 
 install: ## Install project dependencies
-	npm install
+	yarn install
 
 env: ## Create .env from .env.example when missing
 	@if [ -f .env ]; then \
@@ -53,48 +53,48 @@ env: ## Create .env from .env.example when missing
 ## App
 ## ---------------------------------------------------------------------------
 start: ## Start the Expo dev server
-	npm run start
+	yarn start
 
 web: ## Run the app on the web
-	npm run web
+	yarn web
 
 android: ## Run the app on Android
-	npm run android
+	yarn android
 
 ios: ## Run the app on iOS
-	npm run ios
+	yarn ios
 
 ## ---------------------------------------------------------------------------
 ## Quality
 ## ---------------------------------------------------------------------------
 typecheck: ## Run the TypeScript compiler without emitting files
-	npm run typecheck
+	yarn typecheck
 
 lint: ## Run ESLint
-	npm run lint
+	yarn lint
 
 test: ## Run the test suite
-	npm run test
+	yarn test
 
 validate: typecheck lint test ## Run every check used by CI
 
 export.web: ## Build the static web bundle
-	npm run export:web
+	yarn export:web
 
 ## ---------------------------------------------------------------------------
 ## Database (Supabase)
 ## ---------------------------------------------------------------------------
 db.start: ## Start the local Supabase stack
-	npm run supabase:start
+	yarn supabase:start
 
 db.stop: ## Stop the local Supabase stack
-	npm run supabase:stop
+	yarn supabase:stop
 
 db.status: ## Show local Supabase status and credentials
-	npm run supabase:status
+	yarn supabase:status
 
 db.reset: ## Recreate the local database (migrations + seed)
-	npm run supabase:reset
+	yarn supabase:reset
 
 db.link: ## Link the CLI to the hosted project defined in .env
 	@$(LOAD_ENV) npx supabase link --project-ref "$$SUPABASE_PROJECT_ID" -p "$$SUPABASE_DB_PASSWORD"
@@ -112,13 +112,13 @@ db.pull: ## Pull remote schema changes into a new migration
 	@$(LOAD_ENV) npx supabase db pull --linked
 
 db.lint: ## Lint the local database schema
-	npm run supabase:lint
+	yarn supabase:lint
 
 db.migration: ## Create a new migration file (NAME=my_migration)
-	npm run supabase:migration:new -- $(NAME)
+	yarn supabase:migration:new $(NAME)
 
 db.types: ## Regenerate TypeScript types from the local database
-	npm run supabase:types
+	yarn supabase:types
 
 db.new: db.reset db.types ## Reset the database and regenerate types
 

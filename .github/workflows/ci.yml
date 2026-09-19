@@ -25,19 +25,22 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: npm
+          cache: yarn
+
+      - name: Enable Corepack
+        run: corepack enable
 
       - name: Install dependencies
-        run: npm ci
+        run: yarn install --immutable
 
       - name: Typecheck
-        run: npm run typecheck
+        run: yarn typecheck
 
       - name: Lint
-        run: npm run lint
+        run: yarn lint
 
       - name: Test
-        run: npm test
+        run: yarn test
 
   web:
     name: Build web bundle
@@ -51,13 +54,16 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: npm
+          cache: yarn
+
+      - name: Enable Corepack
+        run: corepack enable
 
       - name: Install dependencies
-        run: npm ci
+        run: yarn install --immutable
 
       - name: Export static web bundle
-        run: npm run export:web
+        run: yarn export:web
         env:
           EXPO_PUBLIC_SUPABASE_URL: https://ci-placeholder.supabase.co
           EXPO_PUBLIC_SUPABASE_ANON_KEY: ci-placeholder-anon-key
