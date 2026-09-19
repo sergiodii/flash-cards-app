@@ -79,6 +79,9 @@ Deno.serve(async (req: Request): Promise<Response> => {
   try {
     const generated = await generateCardFields(text);
     const audio = await synthesizeSpeech(generated.english);
+    if (audio.length === 0) {
+      throw new Error("Text-to-speech returned no audio");
+    }
 
     const cardId = crypto.randomUUID();
     const audioPath = `audios/${userId}/${cardId}.mp3`;

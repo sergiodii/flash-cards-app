@@ -88,6 +88,9 @@ export async function synthesizeSpeech(english: string): Promise<Uint8Array> {
       model: TTS_MODEL,
       input: english,
       voice: TTS_VOICE,
+      // The SDK defaults to pcm; without this the bytes are raw PCM but get
+      // stored as .mp3, which decoders read as a zero-length track.
+      responseFormat: "mp3",
     },
   });
 
