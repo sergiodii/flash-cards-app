@@ -10,6 +10,7 @@ const row: Tables<"flashcards"> = {
   example: "It may not work, but it is worth a shot.",
   notes: null,
   tags: ["idioms"],
+  audio_path: null,
   left_count: 2,
   right_count: 1,
   seen_count: 3,
@@ -30,6 +31,7 @@ describe("toFlashcard", () => {
       example: row.example,
       notes: row.notes,
       tags: ["idioms"],
+      audioPath: null,
       leftCount: 2,
       rightCount: 1,
       seenCount: 3,
@@ -43,5 +45,14 @@ describe("toFlashcard", () => {
     const card = toFlashcard({ ...row, tags: null as unknown as string[] });
 
     expect(card.tags).toEqual([]);
+  });
+
+  it("maps the audio path when the card has audio", () => {
+    const card = toFlashcard({
+      ...row,
+      audio_path: "audios/user-1/card-1.mp3",
+    });
+
+    expect(card.audioPath).toBe("audios/user-1/card-1.mp3");
   });
 });

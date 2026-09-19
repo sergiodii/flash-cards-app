@@ -9,12 +9,15 @@ import {
   Text,
 } from "react-native";
 
+import { AddWithAIModal } from "../components/AddWithAIModal";
 import { TextField } from "../components/TextField";
+import { useToast } from "../context/ToastContext";
 import { strings } from "../i18n/strings";
 import { createFlashcard } from "../services/flashcards";
 import { colors, radii, spacing, typography } from "../theme/theme";
 
 export function AddCardScreen() {
+  const { showToast } = useToast();
   const [english, setEnglish] = useState("");
   const [portuguese, setPortuguese] = useState("");
   const [phonetic, setPhonetic] = useState("");
@@ -25,6 +28,7 @@ export function AddCardScreen() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  const [aiVisible, setAiVisible] = useState(false);
 
   const onSubmit = async () => {
     if (!english.trim() || !portuguese.trim()) {
@@ -125,7 +129,25 @@ export function AddCardScreen() {
             <Text style={styles.buttonText}>{strings.addCard.save}</Text>
           )}
         </Pressable>
+
+        <Pressable
+          accessibilityRole="button"
+          disabled={saving}
+          onPress={() => setAiVisible(true)}
+          style={({ pressed }) => [
+            styles.aiButton,
+            pressed && styles.buttonPressed,
+          ]}
+        >
+          <Text style={styles.aiButtonText}>{strings.addCard.aiButton}</Text>
+        </Pressable>
       </ScrollView>
+
+      <AddWithAIModal
+        visible={aiVisible}
+        onClose={() => setAiVisible(false)}
+        onCreated={() => showToast(strings.addCard.aiCreated)}
+      />
     </KeyboardAvoidingView>
   );
 }
@@ -179,6 +201,20 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     color: colors.white,
+    fontSize: typography.body,
+    fontWeight: "700",
+  },
+  aiButton: {
+    backgroundColor: "transparent",
+    borderWidth: 1,
+    borderColor: colors.accent,
+    borderRadius: radii.md,
+    paddingVertical: spacing.md,
+    alignItems: "center",
+    marginTop: spacing.sm,
+  },
+  aiButtonText: {
+    color: colors.accent,
     fontSize: typography.body,
     fontWeight: "700",
   },

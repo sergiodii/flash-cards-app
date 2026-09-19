@@ -5,6 +5,7 @@ import {
   type NewFlashcard,
   type SwipeDirection,
 } from "../types/flashcard";
+import type { Tables } from "../types/database.types";
 import { toFlashcardStats, type FlashcardStats } from "../types/stats";
 
 /**
@@ -73,6 +74,25 @@ export async function createFlashcard(
   return toFlashcard(data);
 }
 
+/**
+ * Asks the `generate-flashcard` edge function to enrich a phrase (English or
+ * Portuguese) and narrate it, returning the newly created card.
+ */
+export async function generateFlashcard(text: string): Promise<Flashcard> {
+  const { data, error } = await getSupabase().functions.invoke<{
+    flashcard: Tables<"flashcards">;
+  }>("generate-flashcard", { body: { text } });
+
+  if (error) {
+    throw new Error(`Failed to generate flashcard: ${await describeError(error)}`);
+  }
+  if (!data?.flashcard) {
+    throw new Error("Failed to generate flashcard: empty response");
+  }
+
+  return toFlashcard(data.flashcard);
+}
+
 /** Lists every card, newest first (useful for a future management screen). */
 export async function listFlashcards(): Promise<Flashcard[]> {
   const { data, error } = await getSupabase()
@@ -96,4 +116,20 @@ export async function fetchFlashcardStats(): Promise<FlashcardStats> {
   }
 
   return toFlashcardStats(data ?? {});
+}
+
+/** Prefers the function's own error message over the generic HTTP one. */
+async function describeError(error: {
+  message: string;
+  context?: Response;
+}): Promise<string> {
+  try {
+    const body = (await error.context?.json()) as { error?: unknown } | undefined;
+    if (typeof body?.error === "string" && body.error.length > 0) {
+      return body.error;
+    }
+  } catch {
+    // Non-JSON body: fall back to the generic message.
+  }
+  return error.message;
 }

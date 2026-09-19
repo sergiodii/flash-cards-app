@@ -25,6 +25,11 @@ export const strings = {
     tapHint: "Drag the card. Left to review, right to move on.",
     seen: (count: number) => `seen ${count}x`,
   },
+  audio: {
+    play: "Play audio",
+    stop: "Stop audio",
+    error: "Could not play the audio.",
+  },
   details: {
     title: "Card details",
     translation: "Portuguese",
@@ -77,6 +82,16 @@ export const strings = {
     saving: "Saving...",
     saved: "Card saved. Add another one or head back to study.",
     required: "English and Portuguese are required.",
+    aiButton: "Add with AI help",
+    aiTitle: "Create with AI",
+    aiSubtitle:
+      "Type a phrase in English or Portuguese. We translate it, fill in the details and record the audio.",
+    aiInput: "Phrase (English or Portuguese)",
+    aiPlaceholder: "e.g. It is worth a shot.",
+    aiSend: "Send",
+    aiSending: "Creating...",
+    aiCancel: "Cancel",
+    aiCreated: "New card created.",
   },
   stats: {
     title: "Your progress",

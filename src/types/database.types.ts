@@ -11,6 +11,7 @@ export type Database = {
     Tables: {
       flashcards: {
         Row: {
+          audio_path: string | null
           created_at: string
           english: string
           example: string | null
@@ -27,6 +28,7 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
+          audio_path?: string | null
           created_at?: string
           english: string
           example?: string | null
@@ -43,6 +45,7 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
+          audio_path?: string | null
           created_at?: string
           english?: string
           example?: string | null
@@ -153,6 +156,7 @@ export type Database = {
       next_flashcards: {
         Args: { p_limit?: number; p_tags?: string[] }
         Returns: {
+          audio_path: string | null
           created_at: string
           english: string
           example: string | null
@@ -181,6 +185,7 @@ export type Database = {
           p_flashcard_id: string
         }
         Returns: {
+          audio_path: string | null
           created_at: string
           english: string
           example: string | null

@@ -21,6 +21,7 @@
     "supabase:push:seed": "supabase db push --linked --include-seed",
     "supabase:lint": "supabase db lint",
     "supabase:migration:new": "supabase migration new",
+    "supabase:functions:serve": "supabase functions serve",
     "supabase:types": "supabase gen types typescript --db-url \"${SUPABASE_DB_URL:-postgresql://postgres:postgres@127.0.0.1:54322/postgres}\" --schema public > src/types/database.types.ts.tmp && mv src/types/database.types.ts.tmp src/types/database.types.ts"
   },
   "dependencies": {
@@ -31,6 +32,7 @@
     "@react-navigation/native-stack": "^7.19.2",
     "@supabase/supabase-js": "^2.116.0",
     "expo": "~57.0.24",
+    "expo-audio": "~57.0.5",
     "expo-constants": "~57.0.19",
     "expo-linear-gradient": "~57.0.2",
     "expo-status-bar": "~57.0.1",

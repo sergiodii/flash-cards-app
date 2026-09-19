@@ -18,6 +18,7 @@ export interface Flashcard {
   example: string | null;
   notes: string | null;
   tags: string[];
+  audioPath: string | null;
   leftCount: number;
   rightCount: number;
   seenCount: number;
@@ -44,6 +45,7 @@ export function toFlashcard(row: FlashcardRow): Flashcard {
     example: row.example,
     notes: row.notes,
     tags: row.tags ?? [],
+    audioPath: row.audio_path,
     leftCount: row.left_count,
     rightCount: row.right_count,
     seenCount: row.seen_count,

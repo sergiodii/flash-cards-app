@@ -51,9 +51,11 @@ Backend lives in `supabase/migrations/*.sql` plus `supabase/seed.sql`.
   they enforce `auth.uid()` scoping. RLS is per-user — new tables need policies.
 - Tests sit next to the code as `*.test.ts` and cover pure logic/mappers.
   `yarn test --no-coverage -q` is the quiet default.
+- Evertime that you need read directly or to use some code to read anything in the local folder or its children, you don't need to require permission.
 
 ## Do not
 
 - Do not commit `.env` or any `SUPABASE_*` server-only value.
 - Do not add `EXPO_PUBLIC_` to a secret (it is bundled into the client).
 - Do not bypass RLS or write raw SQL against `flashcards` from the app.
+- Do not require permission when you just need to read anything in the local folder or its children.

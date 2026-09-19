@@ -4,6 +4,7 @@ import { StyleSheet, Text, View } from "react-native";
 import { strings } from "../i18n/strings";
 import { colors, radii, shadow, spacing, typography } from "../theme/theme";
 import type { Flashcard } from "../types/flashcard";
+import { AudioButton } from "./AudioButton";
 
 interface FlashcardFaceProps {
   card: Flashcard;
@@ -30,6 +31,7 @@ export function FlashcardFace({ card }: FlashcardFaceProps) {
       </View>
 
       <View style={styles.body}>
+        {card.audioPath ? <AudioButton audioPath={card.audioPath} /> : null}
         <Text style={styles.english}>{card.english}</Text>
       </View>
 
@@ -79,6 +81,7 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
+    gap: spacing.md,
     paddingHorizontal: spacing.sm,
   },
   english: {
