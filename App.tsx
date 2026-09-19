@@ -8,6 +8,7 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import { AuthProvider } from "./src/context/AuthContext";
+import { StudyPreferencesProvider } from "./src/context/StudyPreferencesContext";
 import { RootNavigator } from "./src/navigation/RootNavigator";
 import { colors } from "./src/theme/theme";
 
@@ -30,9 +31,11 @@ export default function App() {
       <SafeAreaProvider>
         <StatusBar style="light" />
         <AuthProvider>
-          <NavigationContainer theme={navigationTheme}>
-            <RootNavigator />
-          </NavigationContainer>
+          <StudyPreferencesProvider>
+            <NavigationContainer theme={navigationTheme}>
+              <RootNavigator />
+            </NavigationContainer>
+          </StudyPreferencesProvider>
         </AuthProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>

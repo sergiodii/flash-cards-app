@@ -92,21 +92,66 @@ export type Database = {
           },
         ]
       }
+      starter_flashcards: {
+        Row: {
+          created_at: string
+          english: string
+          example: string | null
+          id: string
+          phonetic: string | null
+          portuguese: string
+          tags: string[]
+        }
+        Insert: {
+          created_at?: string
+          english: string
+          example?: string | null
+          id?: string
+          phonetic?: string | null
+          portuguese: string
+          tags?: string[]
+        }
+        Update: {
+          created_at?: string
+          english?: string
+          example?: string | null
+          id?: string
+          phonetic?: string | null
+          portuguese?: string
+          tags?: string[]
+        }
+        Relationships: []
+      }
+      study_preferences: {
+        Row: {
+          selected_tags: string[]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          selected_tags?: string[]
+          updated_at?: string
+          user_id?: string
+        }
+        Update: {
+          selected_tags?: string[]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      get_flashcard_stats: {
-        Args: Record<PropertyKey, never>
-        Returns: Json
-      }
       flashcard_weight: {
         Args: { p_left_count: number; p_right_count: number }
         Returns: number
       }
+      get_flashcard_stats: { Args: never; Returns: Json }
       next_flashcards: {
-        Args: { p_limit?: number }
+        Args: { p_limit?: number; p_tags?: string[] }
         Returns: {
           created_at: string
           english: string

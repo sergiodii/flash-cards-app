@@ -7,6 +7,7 @@ import { strings } from "../i18n/strings";
 import { AddCardScreen } from "../screens/AddCardScreen";
 import { LoginScreen } from "../screens/LoginScreen";
 import { RegisterScreen } from "../screens/RegisterScreen";
+import { SettingsScreen } from "../screens/SettingsScreen";
 import { StatsScreen } from "../screens/StatsScreen";
 import { StudyScreen } from "../screens/StudyScreen";
 import { colors } from "../theme/theme";
@@ -86,6 +87,11 @@ function AppDrawer() {
         name="Stats"
         component={StatsScreen}
         options={{ title: strings.nav.stats }}
+      />
+      <Drawer.Screen
+        name="Settings"
+        component={SettingsScreen}
+        options={{ title: strings.nav.settings }}
       />
     </Drawer.Navigator>
   );

@@ -7,10 +7,19 @@ import {
 } from "../types/flashcard";
 import { toFlashcardStats, type FlashcardStats } from "../types/stats";
 
-/** Cards ordered by weighted random sampling (heavier cards first). */
-export async function fetchStudyQueue(limit = 20): Promise<Flashcard[]> {
+/**
+ * Cards ordered by weighted random sampling (heavier cards first).
+ *
+ * When `tags` is non-empty, only cards sharing at least one tag are returned;
+ * an empty list studies the whole deck.
+ */
+export async function fetchStudyQueue(
+  limit = 20,
+  tags: string[] = [],
+): Promise<Flashcard[]> {
   const { data, error } = await getSupabase().rpc("next_flashcards", {
     p_limit: limit,
+    p_tags: tags,
   });
 
   if (error) {

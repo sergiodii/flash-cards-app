@@ -12,4 +12,5 @@ export type AppDrawerParamList = {
   Study: undefined;
   AddCard: undefined;
   Stats: undefined;
+  Settings: undefined;
 };

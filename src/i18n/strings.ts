@@ -40,6 +40,7 @@ export const strings = {
     study: "Study",
     addCard: "Add card",
     stats: "Progress",
+    settings: "Settings",
   },
   account: {
     signedInAs: "Signed in as",
@@ -95,5 +96,19 @@ export const strings = {
     rightSwipes: "Known",
     byTag: "By tag",
     noTags: "Cards without tags are not counted in the breakdown.",
+  },
+  settings: {
+    title: "Settings",
+    subtitle:
+      "Choose the tags to study. With none selected, you study every card.",
+    allCards: "All cards (no filter)",
+    loading: "Loading your tags...",
+    errorTitle: "Could not load your tags",
+    retry: "Try again",
+    emptyTitle: "No tags yet",
+    emptyBody: "Add tags to your cards and they will show up here.",
+    saveError: "Could not save your selection.",
+    selectedCount: (count: number) =>
+      count === 1 ? "1 tag selected" : `${count} tags selected`,
   },
 } as const;

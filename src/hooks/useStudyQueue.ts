@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
+import { useStudyPreferences } from "../context/StudyPreferencesContext";
 import { fetchStudyQueue, recordSwipe } from "../services/flashcards";
 import type { Flashcard, SwipeDirection } from "../types/flashcard";
 
@@ -33,6 +34,8 @@ export interface StudyQueueState {
  * detail modal that explains the card before the next one appears.
  */
 export function useStudyQueue(): StudyQueueState {
+  const { selectedTags } = useStudyPreferences();
+
   const [queue, setQueue] = useState<Flashcard[]>([]);
   const [cursor, setCursor] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -51,6 +54,11 @@ export function useStudyQueue(): StudyQueueState {
     };
   }, []);
 
+  const fetchPage = useCallback(
+    () => fetchStudyQueue(QUEUE_SIZE, selectedTags),
+    [selectedTags],
+  );
+
   const applyFirstPage = useCallback((cards: Flashcard[]) => {
     setQueue(avoidImmediateRepeat(cards, lastSwipedId.current));
     setCursor(0);
@@ -59,14 +67,19 @@ export function useStudyQueue(): StudyQueueState {
   const toMessage = (cause: unknown): string =>
     cause instanceof Error ? cause.message : "Unknown error";
 
-  // Initial load. State is only touched after the first await, so the effect
-  // does not trigger a synchronous cascading render.
+  // Loads the first page. Re-runs when the tag filter changes, which resets the
+  // deck so the user never studies a card that the new filter excludes.
   useEffect(() => {
     let active = true;
 
     const run = async () => {
+      // Reset so a filter change never shows a card it excludes.
+      setQueue([]);
+      setCursor(0);
+      setLoading(true);
+
       try {
-        const cards = await fetchStudyQueue(QUEUE_SIZE);
+        const cards = await fetchPage();
         if (!active || !mounted.current) return;
         applyFirstPage(cards);
         setError(null);
@@ -82,13 +95,13 @@ export function useStudyQueue(): StudyQueueState {
     return () => {
       active = false;
     };
-  }, [applyFirstPage]);
+  }, [applyFirstPage, fetchPage]);
 
   const load = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const cards = await fetchStudyQueue(QUEUE_SIZE);
+      const cards = await fetchPage();
       if (!mounted.current) return;
       applyFirstPage(cards);
     } catch (cause) {
@@ -97,13 +110,13 @@ export function useStudyQueue(): StudyQueueState {
     } finally {
       if (mounted.current) setLoading(false);
     }
-  }, [applyFirstPage]);
+  }, [applyFirstPage, fetchPage]);
 
   const extend = useCallback(async () => {
     if (extending.current) return;
     extending.current = true;
     try {
-      const cards = await fetchStudyQueue(QUEUE_SIZE);
+      const cards = await fetchPage();
       if (!mounted.current) return;
       setQueue((previous) => {
         const known = new Set(previous.map((card) => card.id));
@@ -115,7 +128,7 @@ export function useStudyQueue(): StudyQueueState {
     } finally {
       extending.current = false;
     }
-  }, []);
+  }, [fetchPage]);
 
   const current = queue[cursor] ?? null;
   const next = queue[cursor + 1] ?? null;
