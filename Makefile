@@ -24,7 +24,7 @@ LOAD_ENV = set -a; [ -f ./.env ] && . ./.env; set +a;
 
 .PHONY: help setup install env start web android ios typecheck lint test validate \
         export.web db.start db.stop db.status db.reset db.link db.unlink db.push \
-        db.push.seed db.pull db.lint db.migration db.types db.new db.clean clean \
+        db.push.seed db.seed db.pull db.lint db.migration db.types db.new db.clean clean \
         fn.serve fn.deploy fn.secrets test-audio audio.upload
 
 ## ---------------------------------------------------------------------------
@@ -106,8 +106,11 @@ db.unlink: ## Remove the link to the hosted project
 db.push: ## Push migrations to the linked hosted project
 	@$(LOAD_ENV) npx supabase db push --linked
 
-db.push.seed: ## Push migrations AND seed to the linked hosted project
+db.push.seed: ## Push migrations and record the seed hash (does NOT run the seed; use db.seed)
 	@$(LOAD_ENV) npx supabase db push --linked --include-seed
+
+db.seed: ## Apply supabase/seed.sql to the linked hosted project (idempotent)
+	@$(LOAD_ENV) npx supabase db query --linked --file supabase/seed.sql
 
 db.pull: ## Pull remote schema changes into a new migration
 	@$(LOAD_ENV) npx supabase db pull --linked
@@ -142,7 +145,8 @@ test-audio: ## Synthesize starter-deck audio into supabase/assets/start_audios
 	yarn test-audio
 
 audio.upload: ## Upload starter-deck audio to the flash-app bucket (audios/default)
-	@$(LOAD_ENV) npx supabase storage cp --linked --recursive supabase/assets/start_audios/ ss:///flash-app/audios/default/
+	@$(LOAD_ENV) find supabase/assets/start_audios -type f -name '*.mp3' -print0 \
+		| xargs -0 -P 4 -I{} npx supabase storage cp --experimental --linked "{}" "ss:///flash-app/audios/default/$$(basename {})"
 
 ## ---------------------------------------------------------------------------
 ## Housekeeping

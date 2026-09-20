@@ -30,6 +30,7 @@ full picture and `.opencode/STANDARDS.md` for the coding conventions.
 - `make export.web` — build the static web bundle (deployed by `wrangler.jsonc`)
 - `make db.start` / `make db.reset` / `make db.status` — local Supabase
 - `make db.link` / `make db.push` / `make db.pull` — hosted Supabase project
+- `make db.seed` — apply `supabase/seed.sql` to the linked project (idempotent; `db.push --include-seed` only records the seed hash, it does not run the seed remotely)
 - `make db.types` — regenerate `src/types/database.types.ts` from the DB
 - `make db.migration NAME=my_change` — create a migration
 - `make fn.serve` / `make fn.deploy` / `make fn.secrets` — edge functions
