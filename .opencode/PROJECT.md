@@ -6,22 +6,25 @@ Supabase (Postgres + Auth + Storage + Edge Functions) as the backend.
 
 ## Product in one minute
 
-- A signed-in user gets a personal deck of cards (English phrase, Portuguese
-  translation, optional phonetics / example / notes, tags).
-- Cards can be created by hand (AddCard screen) or with AI help: type a phrase
-  in English or Portuguese and the `generate-flashcard` edge function translates
-  it, fills in the details, tags it and records the English narration.
+- A signed-in user studies a **global deck** of cards (English phrase, Portuguese
+  translation, optional phonetics / example / notes, tags) that every user shares.
+  A user's own learning state lives separately, in `user_flashcards`.
+- Cards can only be created with AI help: type a phrase in English or Portuguese
+  and the `generate-flashcard` edge function translates it, fills in the details,
+  tags it and records the English narration. There is no manual creation.
 - Cards are studied one at a time as a swipeable stack:
   - **swipe left = REVIEW** ("needs practice"), card gets heavier;
   - **swipe right = KNOW**, card gets lighter.
 - After each swipe a detail modal shows the translation, phonetics, example,
   tags, an audio play button and the running counters before the next card.
+- The swipe is infinite: cards are fetched in pages of 10, deduped by id for the
+  current cycle, and the deck starts over when the cycle is exhausted.
 - A settings screen lets the user pick the tags to study; an empty selection
   studies the whole deck.
 - A progress screen aggregates totals and a per-tag breakdown (learned,
   struggling, not studied, neutral) plus accuracy.
-- New accounts automatically receive a curated starter deck so the app is never
-  empty on first login.
+- The seeded starter deck is just rows in `flashcards` (`created_by = null`), so
+  the app is never empty on first login.
 
 ## Repetition model (the core domain)
 
@@ -35,9 +38,10 @@ weight = 1 + (left_count * 2) - right_count      -- clamped to >= 0.25
 - Mirrored in TypeScript as `flashcardWeight()` in `src/domain/repetition.ts`
   (the swipe-threshold helpers `directionFromTranslation` and
   `shouldCommitSwipe` live there too, as reanimated worklets).
-- `next_flashcards(p_limit, p_tags)` orders cards by weighted random sampling
-  using exponential keys: `-ln(1 - random()) / weight`, ascending, and filters
-  by tag overlap when `p_tags` is non-empty.
+- `next_flashcards(p_limit, p_tags)` left-joins the caller's `user_flashcards`
+  row, orders global cards by weighted random sampling using exponential keys
+  (`-ln(1 - random()) / weight`, ascending) and filters by tag overlap when
+  `p_tags` is non-empty. Cards the user never studied count as weight 1.
 
 These two implementations are duplicated **on purpose** and are linked: change
 one, change and test the other. The tag-filter rule is pure too and lives in
@@ -52,8 +56,8 @@ Layers under `src/`, dependencies pointing inward
 | ------------- | -------------------------------------------------------------------- |
 | `config/`     | Reads `EXPO_PUBLIC_*` env vars, exposes `env` + configuration guard.  |
 | `lib/`        | Infrastructure clients — the lazy Supabase client (`getSupabase`).   |
-| `services/`   | Every backend call: auth, flashcards (`rpc`, `insert`, `select`), study preferences, storage signed URLs, edge-function invoke. |
-| `types/`      | Domain models + row→domain mappers (`flashcard`, `stats`, `preferences`) + generated DB types. |
+| `services/`   | Every backend call: auth, flashcards (`rpc`, `select`), study preferences, storage signed URLs, edge-function invoke. |
+| `types/`      | Domain models + row→domain mappers (`flashcard` incl. `FlashcardProgress`, `stats`, `preferences`) + generated DB types. |
 | `domain/`     | Pure, framework-free rules that mirror the DB logic (`repetition`, `tagSelection`); unit-tested. |
 | `hooks/`      | Stateful screen logic (`useStudyQueue` owns the study session).      |
 | `context/`    | React context providers (`AuthProvider`, `StudyPreferencesProvider`, `ToastProvider`). |
@@ -90,7 +94,7 @@ AddCardScreen
       → supabase.functions.invoke("generate-flashcard", { text })
         → edge function: OpenRouter chat (fields) + TTS (mp3)
           → Storage upload audios/<user_id>/<id>.mp3
-          → insert flashcard with audio_path (service role, scoped to JWT user)
+          → insert flashcard with audio_path + created_by (service role, scoped to JWT user)
 ```
 
 ### Auth flow
@@ -118,12 +122,19 @@ manual navigation.
 - `migrations/20260919130000_flashcard_audio.sql` — `flashcards.audio_path`,
   the private `flash-app` bucket and the storage SELECT policy scoped to
   `audios/<auth.uid()>/...`.
-- `seed.sql` — fills `starter_flashcards` (idempotent) and backfills existing
-  users.
+- `migrations/20260919140000_global_cards_progress.sql` — makes cards global
+  content (`created_by`, `deleted_at`), adds the `user_flashcards` progress
+  table, drops `review_events`/`starter_flashcards` and the starter trigger,
+  rewrites `next_flashcards`/`record_swipe`/`get_flashcard_stats`, and makes
+  `flashcards` read-only to clients.
+- `seed.sql` — inserts the global starter deck into `flashcards`
+  (`created_by = null`), idempotent by english text.
 
-`record_swipe` is atomic: it updates the counters and appends a `review_events`
-row in one function. The only supported way to read/write study data from the
-app is through these server functions — never raw SQL against `flashcards`.
+`record_swipe` is atomic: it upserts the caller's `user_flashcards` row and
+returns it. The only supported way to read/write study data from the app is
+through these server functions — never raw SQL against `flashcards`. Cards are
+written **only** by the `generate-flashcard` edge function (service role);
+clients have no insert/update/delete policy on `flashcards`.
 
 ### Edge functions (`supabase/functions/`)
 

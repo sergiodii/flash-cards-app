@@ -9,12 +9,17 @@ import {
 
 import { strings } from "../i18n/strings";
 import { colors, radii, spacing, typography } from "../theme/theme";
-import type { Flashcard, SwipeDirection } from "../types/flashcard";
+import type {
+  Flashcard,
+  FlashcardProgress,
+  SwipeDirection,
+} from "../types/flashcard";
 
 interface CardDetailModalProps {
   visible: boolean;
   card: Flashcard | null;
   direction: SwipeDirection | null;
+  progress?: FlashcardProgress | null;
   onClose: () => void;
 }
 
@@ -23,6 +28,7 @@ export function CardDetailModal({
   visible,
   card,
   direction,
+  progress,
   onClose,
 }: CardDetailModalProps) {
   if (!card) {
@@ -94,12 +100,12 @@ export function CardDetailModal({
             <View style={styles.counters}>
               <Counter
                 label={strings.details.reviewCount}
-                value={card.leftCount}
+                value={progress?.leftCount ?? 0}
                 color={colors.danger}
               />
               <Counter
                 label={strings.details.knowCount}
-                value={card.rightCount}
+                value={progress?.rightCount ?? 0}
                 color={colors.success}
               />
             </View>

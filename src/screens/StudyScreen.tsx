@@ -15,8 +15,18 @@ import { colors, radii, spacing, typography } from "../theme/theme";
 
 export function StudyScreen() {
   const insets = useSafeAreaInsets();
-  const { current, next, loading, error, stats, pending, commit, dismiss, reload } =
-    useStudyQueue();
+  const {
+    current,
+    next,
+    loading,
+    error,
+    stats,
+    progress,
+    pending,
+    commit,
+    dismiss,
+    reload,
+  } = useStudyQueue();
 
   return (
     <View style={styles.container}>
@@ -39,6 +49,7 @@ export function StudyScreen() {
         visible={pending !== null}
         card={pending?.card ?? null}
         direction={pending?.direction ?? null}
+        progress={pending ? progress[pending.card.id] ?? null : null}
         onClose={dismiss}
       />
     </View>
@@ -86,6 +97,8 @@ export function StudyScreen() {
         key={current.id}
         card={current}
         nextCard={next}
+        progress={progress[current.id] ?? null}
+        nextProgress={next ? progress[next.id] ?? null : null}
         onCommit={commit}
       />
     );

@@ -11,7 +11,7 @@ export const strings = {
     session: "This session",
     emptyTitle: "No cards yet",
     emptyBody:
-      "Add cards to your Supabase project and they will show up here to study.",
+      "Add a card with AI help and it will show up here to study.",
     retry: "Try again",
     errorTitle: "Something went wrong",
   },
@@ -71,17 +71,8 @@ export const strings = {
   },
   addCard: {
     title: "Add a card",
-    subtitle: "Type a phrase or word you want to practice.",
-    english: "English (phrase or text)",
-    portuguese: "Portuguese",
-    phonetic: "Pronunciation (optional)",
-    example: "Example sentence (optional)",
-    notes: "Notes (optional)",
-    tags: "Tags (comma separated)",
-    save: "Save card",
-    saving: "Saving...",
-    saved: "Card saved. Add another one or head back to study.",
-    required: "English and Portuguese are required.",
+    subtitle:
+      "Type a phrase or word you want to practice. AI fills in the translation, details and audio, and the card is shared with everyone.",
     aiButton: "Add with AI help",
     aiTitle: "Create with AI",
     aiSubtitle:

@@ -2,10 +2,14 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 import { useStudyPreferences } from "../context/StudyPreferencesContext";
 import { fetchStudyQueue, recordSwipe } from "../services/flashcards";
-import type { Flashcard, SwipeDirection } from "../types/flashcard";
+import type {
+  Flashcard,
+  FlashcardProgress,
+  SwipeDirection,
+} from "../types/flashcard";
 
-const QUEUE_SIZE = 20;
-const EXTEND_THRESHOLD = 3;
+const QUEUE_SIZE = 10;
+const EXTEND_THRESHOLD = 2;
 
 export interface StudyStats {
   left: number;
@@ -17,12 +21,15 @@ export interface PendingReview {
   direction: SwipeDirection;
 }
 
+export type ProgressMap = Record<string, FlashcardProgress>;
+
 export interface StudyQueueState {
   current: Flashcard | null;
   next: Flashcard | null;
   loading: boolean;
   error: string | null;
   stats: StudyStats;
+  progress: ProgressMap;
   pending: PendingReview | null;
   commit: (direction: SwipeDirection) => void;
   dismiss: () => void;
@@ -32,6 +39,10 @@ export interface StudyQueueState {
 /**
  * Owns the study queue: loading, the weighted order, swipe persistence and the
  * detail modal that explains the card before the next one appears.
+ *
+ * The swipe is infinite: cards are fetched in pages of `QUEUE_SIZE`, deduped
+ * by id for the current cycle, and when the cycle is exhausted the seen-set is
+ * cleared so the deck starts over.
  */
 export function useStudyQueue(): StudyQueueState {
   const { selectedTags } = useStudyPreferences();
@@ -41,11 +52,13 @@ export function useStudyQueue(): StudyQueueState {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [stats, setStats] = useState<StudyStats>({ left: 0, right: 0 });
+  const [progress, setProgress] = useState<ProgressMap>({});
   const [pending, setPending] = useState<PendingReview | null>(null);
 
   const mounted = useRef(true);
   const extending = useRef(false);
   const lastSwipedId = useRef<string | null>(null);
+  const seenIds = useRef<Set<string>>(new Set());
 
   useEffect(() => {
     mounted.current = true;
@@ -60,7 +73,13 @@ export function useStudyQueue(): StudyQueueState {
   );
 
   const applyFirstPage = useCallback((cards: Flashcard[]) => {
-    setQueue(avoidImmediateRepeat(cards, lastSwipedId.current));
+    const fresh = cards.filter((card) => !seenIds.current.has(card.id));
+    // Cycle exhausted: start the deck over from this fresh page.
+    if (fresh.length === 0) {
+      seenIds.current.clear();
+    }
+    const usable = fresh.length > 0 ? fresh : cards;
+    setQueue(avoidImmediateRepeat(usable, lastSwipedId.current));
     setCursor(0);
   }, []);
 
@@ -74,6 +93,7 @@ export function useStudyQueue(): StudyQueueState {
 
     const run = async () => {
       // Reset so a filter change never shows a card it excludes.
+      seenIds.current.clear();
       setQueue([]);
       setCursor(0);
       setLoading(true);
@@ -120,7 +140,9 @@ export function useStudyQueue(): StudyQueueState {
       if (!mounted.current) return;
       setQueue((previous) => {
         const known = new Set(previous.map((card) => card.id));
-        const fresh = cards.filter((card) => !known.has(card.id));
+        const fresh = cards.filter(
+          (card) => !known.has(card.id) && !seenIds.current.has(card.id),
+        );
         return fresh.length > 0 ? [...previous, ...fresh] : previous;
       });
     } catch {
@@ -142,18 +164,35 @@ export function useStudyQueue(): StudyQueueState {
         ...previous,
         [direction]: previous[direction] + 1,
       }));
-      void recordSwipe(current.id, direction).catch((cause) => {
-        console.warn("Failed to persist swipe", cause);
-      });
+      setProgress((previous) => ({
+        ...previous,
+        [current.id]: bumpProgress(previous[current.id], current.id, direction),
+      }));
+      void recordSwipe(current.id, direction)
+        .then((saved) => {
+          if (!mounted.current) return;
+          setProgress((previous) => ({
+            ...previous,
+            [saved.flashcardId]: saved,
+          }));
+        })
+        .catch((cause) => {
+          console.warn("Failed to persist swipe", cause);
+        });
     },
     [current],
   );
 
   const dismiss = useCallback(() => {
     setPending(null);
+    if (current) {
+      seenIds.current.add(current.id);
+    }
     const nextCursor = cursor + 1;
 
     if (nextCursor >= queue.length) {
+      // End of the cycle: clear the seen-set and refill so swiping never ends.
+      seenIds.current.clear();
       setCursor(0);
       void load();
       return;
@@ -163,7 +202,7 @@ export function useStudyQueue(): StudyQueueState {
     if (queue.length - nextCursor <= EXTEND_THRESHOLD) {
       void extend();
     }
-  }, [cursor, queue.length, load, extend]);
+  }, [current, cursor, queue.length, load, extend]);
 
   const reload = useCallback(() => {
     setPending(null);
@@ -176,10 +215,32 @@ export function useStudyQueue(): StudyQueueState {
     loading,
     error,
     stats,
+    progress,
     pending,
     commit,
     dismiss,
     reload,
+  };
+}
+
+/** Optimistic counters so the detail modal is correct before the RPC returns. */
+function bumpProgress(
+  previous: FlashcardProgress | undefined,
+  flashcardId: string,
+  direction: SwipeDirection,
+): FlashcardProgress {
+  const base = previous ?? {
+    flashcardId,
+    leftCount: 0,
+    rightCount: 0,
+    seenCount: 0,
+    lastReviewedAt: null,
+  };
+  return {
+    ...base,
+    leftCount: base.leftCount + (direction === "left" ? 1 : 0),
+    rightCount: base.rightCount + (direction === "right" ? 1 : 0),
+    seenCount: base.seenCount + 1,
   };
 }
 

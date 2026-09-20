@@ -97,7 +97,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
       .from("flashcards")
       .insert({
         id: cardId,
-        user_id: userId,
+        created_by: userId,
         english: generated.english,
         portuguese: generated.portuguese,
         phonetic: generated.phonetic,

@@ -40,9 +40,10 @@ types / domain    (pure, framework-free)
 - DB speaks `snake_case`; app speaks `camelCase`. Map **at the boundary** with
   dedicated mappers (`toFlashcard`, `toFlashcardStats`). Row shapes must not
   leak into screens or hooks.
-- Domain types live in `src/types/` (`Flashcard`, `NewFlashcard`, `SwipeDirection`,
-  `FlashcardStats`, …); generated DB types live in `src/types/database.types.ts`
-  and are **never edited by hand** — run `make db.types`.
+- Domain types live in `src/types/` (`Flashcard`, `FlashcardProgress`,
+  `SwipeDirection`, `FlashcardStats`, …); generated DB types live in
+  `src/types/database.types.ts` and are **never edited by hand** — run
+  `make db.types`.
 - Use `interface` for object shapes, `type` for unions/aliases. Prefer explicit
   named exports over default exports (the app entry is the exception).
 
@@ -94,6 +95,10 @@ selection/toggle rules live in `src/domain/tagSelection.ts` and are locked by
 - New tables enable RLS and define policies scoped to `auth.uid()`; grants are
   explicit. Study data is only reached through the server functions
   (`next_flashcards`, `record_swipe`, `get_flashcard_stats`).
+- Cards are global content (`flashcards`) and are read-only to clients: only the
+  `generate-flashcard` edge function writes them. Per-user learning state lives
+  in `user_flashcards` (`user_id`, `flashcard_id`, counters) and is the single
+  source of truth for progress.
 - Run `make db.reset` then `make db.types` after schema changes, and keep
   `seed.sql` idempotent.
 

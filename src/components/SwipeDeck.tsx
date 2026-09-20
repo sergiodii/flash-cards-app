@@ -15,7 +15,11 @@ import Animated, {
 import { directionFromTranslation, shouldCommitSwipe } from "../domain/repetition";
 import { strings } from "../i18n/strings";
 import { colors, radii, spacing } from "../theme/theme";
-import type { Flashcard, SwipeDirection } from "../types/flashcard";
+import type {
+  Flashcard,
+  FlashcardProgress,
+  SwipeDirection,
+} from "../types/flashcard";
 import { FlashcardFace } from "./FlashcardFace";
 
 const SWIPE_THRESHOLD_RATIO = 0.28;
@@ -28,6 +32,8 @@ const PEEK_SCALE = 0.95;
 interface SwipeDeckProps {
   card: Flashcard;
   nextCard: Flashcard | null;
+  progress?: FlashcardProgress | null;
+  nextProgress?: FlashcardProgress | null;
   onCommit: (direction: SwipeDirection) => void;
 }
 
@@ -39,7 +45,13 @@ interface SwipeDeckProps {
  * circular arc. The card underneath only follows a fraction of the drag
  * (parallax), which is what keeps the base of the stack centred.
  */
-export function SwipeDeck({ card, nextCard, onCommit }: SwipeDeckProps) {
+export function SwipeDeck({
+  card,
+  nextCard,
+  progress,
+  nextProgress,
+  onCommit,
+}: SwipeDeckProps) {
   const { width } = useWindowDimensions();
   const translationX = useSharedValue(0);
   const translationY = useSharedValue(0);
@@ -145,13 +157,13 @@ export function SwipeDeck({ card, nextCard, onCommit }: SwipeDeckProps) {
           pointerEvents="none"
           style={[styles.card, styles.peek, peekStyle]}
         >
-          <FlashcardFace card={nextCard} />
+          <FlashcardFace card={nextCard} progress={nextProgress} />
         </Animated.View>
       ) : null}
 
       <GestureDetector gesture={pan}>
         <Animated.View style={[styles.card, styles.topCard, cardStyle]}>
-          <FlashcardFace card={card} />
+          <FlashcardFace card={card} progress={progress} />
           <Animated.View
             pointerEvents="none"
             style={[styles.borderOverlay, borderStyle]}

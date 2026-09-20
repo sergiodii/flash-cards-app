@@ -3,15 +3,18 @@ import { StyleSheet, Text, View } from "react-native";
 
 import { strings } from "../i18n/strings";
 import { colors, radii, shadow, spacing, typography } from "../theme/theme";
-import type { Flashcard } from "../types/flashcard";
+import type { Flashcard, FlashcardProgress } from "../types/flashcard";
 import { AudioButton } from "./AudioButton";
 
 interface FlashcardFaceProps {
   card: Flashcard;
+  progress?: FlashcardProgress | null;
 }
 
 /** The visible face of a card: the English phrase plus its metadata. */
-export function FlashcardFace({ card }: FlashcardFaceProps) {
+export function FlashcardFace({ card, progress }: FlashcardFaceProps) {
+  const seenCount = progress?.seenCount ?? 0;
+
   return (
     <LinearGradient
       colors={[colors.surfaceElevated, colors.surface]}
@@ -27,7 +30,7 @@ export function FlashcardFace({ card }: FlashcardFaceProps) {
             </View>
           ))}
         </View>
-        <Text style={styles.seen}>{strings.card.seen(card.seenCount)}</Text>
+        <Text style={styles.seen}>{strings.card.seen(seenCount)}</Text>
       </View>
 
       <View style={styles.body}>

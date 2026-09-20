@@ -13,115 +13,44 @@ export type Database = {
         Row: {
           audio_path: string | null
           created_at: string
+          created_by: string | null
+          deleted_at: string | null
           english: string
           example: string | null
           id: string
-          last_reviewed_at: string | null
-          left_count: number
           notes: string | null
           phonetic: string | null
           portuguese: string
-          right_count: number
-          seen_count: number
           tags: string[]
           updated_at: string
-          user_id: string | null
         }
         Insert: {
           audio_path?: string | null
           created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
           english: string
           example?: string | null
           id?: string
-          last_reviewed_at?: string | null
-          left_count?: number
           notes?: string | null
           phonetic?: string | null
           portuguese: string
-          right_count?: number
-          seen_count?: number
           tags?: string[]
           updated_at?: string
-          user_id?: string | null
         }
         Update: {
           audio_path?: string | null
           created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
           english?: string
           example?: string | null
           id?: string
-          last_reviewed_at?: string | null
-          left_count?: number
           notes?: string | null
           phonetic?: string | null
           portuguese?: string
-          right_count?: number
-          seen_count?: number
           tags?: string[]
           updated_at?: string
-          user_id?: string | null
-        }
-        Relationships: []
-      }
-      review_events: {
-        Row: {
-          created_at: string
-          direction: Database["public"]["Enums"]["swipe_direction"]
-          flashcard_id: string
-          id: string
-          user_id: string | null
-        }
-        Insert: {
-          created_at?: string
-          direction: Database["public"]["Enums"]["swipe_direction"]
-          flashcard_id: string
-          id?: string
-          user_id?: string | null
-        }
-        Update: {
-          created_at?: string
-          direction?: Database["public"]["Enums"]["swipe_direction"]
-          flashcard_id?: string
-          id?: string
-          user_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "review_events_flashcard_id_fkey"
-            columns: ["flashcard_id"]
-            isOneToOne: false
-            referencedRelation: "flashcards"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      starter_flashcards: {
-        Row: {
-          created_at: string
-          english: string
-          example: string | null
-          id: string
-          phonetic: string | null
-          portuguese: string
-          tags: string[]
-        }
-        Insert: {
-          created_at?: string
-          english: string
-          example?: string | null
-          id?: string
-          phonetic?: string | null
-          portuguese: string
-          tags?: string[]
-        }
-        Update: {
-          created_at?: string
-          english?: string
-          example?: string | null
-          id?: string
-          phonetic?: string | null
-          portuguese?: string
-          tags?: string[]
         }
         Relationships: []
       }
@@ -143,6 +72,47 @@ export type Database = {
         }
         Relationships: []
       }
+      user_flashcards: {
+        Row: {
+          created_at: string
+          flashcard_id: string
+          last_reviewed_at: string | null
+          left_count: number
+          right_count: number
+          seen_count: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          flashcard_id: string
+          last_reviewed_at?: string | null
+          left_count?: number
+          right_count?: number
+          seen_count?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Update: {
+          created_at?: string
+          flashcard_id?: string
+          last_reviewed_at?: string | null
+          left_count?: number
+          right_count?: number
+          seen_count?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_flashcards_flashcard_id_fkey"
+            columns: ["flashcard_id"]
+            isOneToOne: false
+            referencedRelation: "flashcards"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -158,19 +128,16 @@ export type Database = {
         Returns: {
           audio_path: string | null
           created_at: string
+          created_by: string | null
+          deleted_at: string | null
           english: string
           example: string | null
           id: string
-          last_reviewed_at: string | null
-          left_count: number
           notes: string | null
           phonetic: string | null
           portuguese: string
-          right_count: number
-          seen_count: number
           tags: string[]
           updated_at: string
-          user_id: string | null
         }[]
         SetofOptions: {
           from: "*"
@@ -185,25 +152,18 @@ export type Database = {
           p_flashcard_id: string
         }
         Returns: {
-          audio_path: string | null
           created_at: string
-          english: string
-          example: string | null
-          id: string
+          flashcard_id: string
           last_reviewed_at: string | null
           left_count: number
-          notes: string | null
-          phonetic: string | null
-          portuguese: string
           right_count: number
           seen_count: number
-          tags: string[]
           updated_at: string
-          user_id: string | null
+          user_id: string
         }
         SetofOptions: {
           from: "*"
-          to: "flashcards"
+          to: "user_flashcards"
           isOneToOne: true
           isSetofReturn: false
         }

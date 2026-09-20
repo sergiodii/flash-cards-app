@@ -1,19 +1,19 @@
 -- =============================================================================
--- Seed data :: starter deck template
+-- Seed data :: starter deck
 --
--- Fills public.starter_flashcards, the read-only template that the
--- on_auth_user_created trigger copies to every new user.
+-- Fills public.flashcards with the global starter deck (created_by = null).
+-- Cards are shared by every user; a user's progress lives in user_flashcards
+-- and is created lazily on their first swipe.
 --
--- Idempotent: the table is cleared and rebuilt on every run, so `supabase db
--- reset` (local) and `supabase db push --include-seed` (hosted) can be repeated.
+-- Idempotent by english text, so `supabase db reset` (local) and `supabase db
+-- push --include-seed` (hosted) can be repeated without duplicating phrases.
 --
 -- Tags are thematic and feed the "by tag" breakdown on the progress screen.
 -- =============================================================================
 
-truncate table public.starter_flashcards restart identity;
-
-insert into public.starter_flashcards (english, portuguese, phonetic, example, tags)
-values
+insert into public.flashcards (created_by, english, portuguese, phonetic, example, tags)
+select null, s.english, s.portuguese, s.phonetic, s.example, s.tags
+from (values
   -- greetings / small talk ---------------------------------------------------
   ('How have you been?', 'Como você tem passado?', '/haʊ hæv juː biːn/', 'Hey, long time no see! How have you been?', array['greetings']),
   ('How''s it going? / What''s up?', 'E aí, tudo bem? / E aí?', 'háuz it góu-ing / uóts âp', 'Hey man, what''s up?', array['greetings', 'slang']),
@@ -148,19 +148,10 @@ values
 
   -- vocabulary ---------------------------------------------------------------
   ('Current / Currently', 'Atual / Atualmente', 'câ-rent / câ-rent-li', 'My current job is remote. Currently, I live in Brazil.', array['vocabulary']),
-  ('Nowadays / At present', 'Hoje em dia / Atualmente', 'náu-ê-déiz / ét pré-zent', 'Nowadays, most people work online.', array['vocabulary', 'time']);
-
--- ----------------------------------------------------------------------------
--- Backfill: give existing users the starter deck they never received.
--- Idempotent by english text, so re-running the seed does not duplicate cards.
--- ----------------------------------------------------------------------------
-insert into public.flashcards (user_id, english, portuguese, phonetic, example, tags)
-select u.id, s.english, s.portuguese, s.phonetic, s.example, s.tags
-from auth.users u
-cross join public.starter_flashcards s
+  ('Nowadays / At present', 'Hoje em dia / Atualmente', 'náu-ê-déiz / ét pré-zent', 'Nowadays, most people work online.', array['vocabulary', 'time'])
+) as s(english, portuguese, phonetic, example, tags)
 where not exists (
   select 1
   from public.flashcards f
-  where f.user_id = u.id
-    and lower(f.english) = lower(s.english)
+  where lower(f.english) = lower(s.english)
 );

@@ -1,8 +1,9 @@
 import { getSupabase } from "../lib/supabase";
 import {
   toFlashcard,
+  toFlashcardProgress,
   type Flashcard,
-  type NewFlashcard,
+  type FlashcardProgress,
   type SwipeDirection,
 } from "../types/flashcard";
 import type { Tables } from "../types/database.types";
@@ -11,6 +12,7 @@ import { toFlashcardStats, type FlashcardStats } from "../types/stats";
 /**
  * Cards ordered by weighted random sampling (heavier cards first).
  *
+ * Cards are global; the weight comes from the caller's own progress.
  * When `tags` is non-empty, only cards sharing at least one tag are returned;
  * an empty list studies the whole deck.
  */
@@ -30,11 +32,11 @@ export async function fetchStudyQueue(
   return (data ?? []).map(toFlashcard);
 }
 
-/** Registers a swipe and returns the updated card counters. */
+/** Registers a swipe and returns the caller's updated progress for the card. */
 export async function recordSwipe(
   flashcardId: string,
   direction: SwipeDirection,
-): Promise<Flashcard> {
+): Promise<FlashcardProgress> {
   const { data, error } = await getSupabase().rpc("record_swipe", {
     p_flashcard_id: flashcardId,
     p_direction: direction,
@@ -47,31 +49,7 @@ export async function recordSwipe(
     throw new Error("Failed to record swipe: empty response");
   }
 
-  return toFlashcard(data);
-}
-
-/** Creates a new card to study. */
-export async function createFlashcard(
-  input: NewFlashcard,
-): Promise<Flashcard> {
-  const { data, error } = await getSupabase()
-    .from("flashcards")
-    .insert({
-      english: input.english,
-      portuguese: input.portuguese,
-      phonetic: input.phonetic ?? null,
-      example: input.example ?? null,
-      notes: input.notes ?? null,
-      tags: input.tags ?? [],
-    })
-    .select()
-    .single();
-
-  if (error) {
-    throw new Error(`Failed to create flashcard: ${error.message}`);
-  }
-
-  return toFlashcard(data);
+  return toFlashcardProgress(data);
 }
 
 /**
