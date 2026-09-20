@@ -25,7 +25,7 @@ LOAD_ENV = set -a; [ -f ./.env ] && . ./.env; set +a;
 .PHONY: help setup install env start web android ios typecheck lint test validate \
         export.web db.start db.stop db.status db.reset db.link db.unlink db.push \
         db.push.seed db.pull db.lint db.migration db.types db.new db.clean clean \
-        fn.serve fn.deploy fn.secrets test-audio
+        fn.serve fn.deploy fn.secrets test-audio audio.upload
 
 ## ---------------------------------------------------------------------------
 ## Help
@@ -136,10 +136,13 @@ fn.secrets: ## Push server secrets (OPENROUTER_API_KEY) to the linked project
 	@$(LOAD_ENV) npx supabase secrets set OPENROUTER_API_KEY="$$OPENROUTER_API_KEY"
 
 ## ---------------------------------------------------------------------------
-## Smoke tests
+## Starter-deck audio
 ## ---------------------------------------------------------------------------
-test-audio: ## Synthesize a test phrase with OpenRouter and save it in the root
+test-audio: ## Synthesize starter-deck audio into supabase/assets/start_audios
 	yarn test-audio
+
+audio.upload: ## Upload starter-deck audio to the flash-app bucket (audios/default)
+	@$(LOAD_ENV) npx supabase storage cp --linked --recursive supabase/assets/start_audios/ ss:///flash-app/audios/default/
 
 ## ---------------------------------------------------------------------------
 ## Housekeeping

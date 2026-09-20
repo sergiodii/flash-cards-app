@@ -33,7 +33,8 @@ full picture and `.opencode/STANDARDS.md` for the coding conventions.
 - `make db.types` — regenerate `src/types/database.types.ts` from the DB
 - `make db.migration NAME=my_change` — create a migration
 - `make fn.serve` / `make fn.deploy` / `make fn.secrets` — edge functions
-- `make test-audio` — OpenRouter TTS smoke test (`test-audio.mjs`)
+- `make test-audio` — generate starter-deck TTS into `supabase/assets/start_audios` (`test-audio.mjs`, skips existing files)
+- `make audio.upload` — upload starter-deck audio to the `flash-app` bucket under `audios/default`
 
 Node 22, Yarn 4 (Corepack), strict TypeScript. Never edit
 `src/types/database.types.ts` by hand — regenerate it.
