@@ -10,6 +10,8 @@ export const strings = {
     progress: (current: number, total: number) => `${current} / ${total}`,
     session: "This session",
     addTag: "Tag",
+    undo: "Undo",
+    great: "Great!",
     emptyTitle: "No cards yet",
     emptyBody:
       "Add a card with AI help and it will show up here to study.",

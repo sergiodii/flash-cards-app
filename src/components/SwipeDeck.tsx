@@ -36,6 +36,8 @@ interface SwipeDeckProps {
   nextProgress?: FlashcardProgress | null;
   privateTags?: string[];
   nextPrivateTags?: string[];
+  /** Blocks the pan gesture (e.g. while a swipe is being resolved). */
+  disabled?: boolean;
   onCommit: (direction: SwipeDirection) => void;
 }
 
@@ -54,6 +56,7 @@ export function SwipeDeck({
   nextProgress,
   privateTags,
   nextPrivateTags,
+  disabled = false,
   onCommit,
 }: SwipeDeckProps) {
   const { width } = useWindowDimensions();
@@ -71,6 +74,7 @@ export function SwipeDeck({
   );
 
   const pan = Gesture.Pan()
+    .enabled(!disabled)
     .onUpdate((event) => {
       translationX.value = event.translationX;
       translationY.value = event.translationY;

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Pressable,
@@ -15,6 +15,8 @@ import { useStudyQueue } from "../hooks/useStudyQueue";
 import { strings } from "../i18n/strings";
 import { colors, radii, spacing, typography } from "../theme/theme";
 
+const GREAT_DURATION_MS = 700;
+
 export function StudyScreen() {
   const insets = useSafeAreaInsets();
   const [tagVisible, setTagVisible] = useState(false);
@@ -27,11 +29,21 @@ export function StudyScreen() {
     progress,
     privateTags,
     pending,
+    canUndo,
     commit,
     dismiss,
+    undo,
     reload,
     setCardTags,
   } = useStudyQueue();
+
+  // A right swipe only acknowledges the card: show "Great!" briefly, then
+  // advance without the translation sheet (that is the left-swipe flow).
+  useEffect(() => {
+    if (pending?.direction !== "right") return;
+    const timer = setTimeout(() => dismiss(), GREAT_DURATION_MS);
+    return () => clearTimeout(timer);
+  }, [pending, dismiss]);
 
   return (
     <View style={styles.container}>
@@ -40,14 +52,25 @@ export function StudyScreen() {
         <View style={styles.headerActions}>
           <Pressable
             accessibilityRole="button"
+            disabled={!canUndo}
+            onPress={undo}
+            style={({ pressed }) => [
+              styles.headerButton,
+              (pressed || !canUndo) && styles.headerButtonPressed,
+            ]}
+          >
+            <Text style={styles.headerButtonText}>{strings.study.undo}</Text>
+          </Pressable>
+          <Pressable
+            accessibilityRole="button"
             disabled={!current}
             onPress={() => setTagVisible(true)}
             style={({ pressed }) => [
-              styles.tagButton,
-              (pressed || !current) && styles.tagButtonPressed,
+              styles.headerButton,
+              (pressed || !current) && styles.headerButtonPressed,
             ]}
           >
-            <Text style={styles.tagButtonText}>{strings.study.addTag}</Text>
+            <Text style={styles.headerButtonText}>{strings.study.addTag}</Text>
           </Pressable>
           <View style={styles.stats}>
             <StatPill value={stats.left} color={colors.danger} />
@@ -58,13 +81,19 @@ export function StudyScreen() {
 
       <View style={styles.deckArea}>{renderContent()}</View>
 
+      {pending?.direction === "right" ? (
+        <View pointerEvents="none" style={styles.greatOverlay}>
+          <Text style={styles.greatText}>{strings.study.great}</Text>
+        </View>
+      ) : null}
+
       <View style={[styles.footer, { paddingBottom: insets.bottom + spacing.md }]}>
         <Text style={styles.hint}>← {strings.swipe.hintLeft}</Text>
         <Text style={styles.hint}>{strings.swipe.hintRight} →</Text>
       </View>
 
       <CardDetailModal
-        visible={pending !== null}
+        visible={pending?.direction === "left"}
         card={pending?.card ?? null}
         direction={pending?.direction ?? null}
         progress={pending ? progress[pending.card.id] ?? null : null}
@@ -129,6 +158,7 @@ export function StudyScreen() {
         nextProgress={next ? progress[next.id] ?? null : null}
         privateTags={privateTags[current.id] ?? []}
         nextPrivateTags={next ? privateTags[next.id] ?? [] : []}
+        disabled={pending !== null}
         onCommit={commit}
       />
     );
@@ -172,17 +202,17 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: spacing.sm,
   },
-  tagButton: {
+  headerButton: {
     paddingHorizontal: spacing.sm,
     paddingVertical: spacing.xs,
     borderRadius: radii.pill,
     borderWidth: 1,
     borderColor: colors.accent,
   },
-  tagButtonPressed: {
+  headerButtonPressed: {
     opacity: 0.6,
   },
-  tagButtonText: {
+  headerButtonText: {
     color: colors.accent,
     fontSize: 12,
     fontWeight: "700",
@@ -203,6 +233,21 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,
+  },
+  greatOverlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  greatText: {
+    color: colors.success,
+    fontSize: typography.title * 1.6,
+    fontWeight: "800",
+    letterSpacing: 1,
   },
   centered: {
     flex: 1,

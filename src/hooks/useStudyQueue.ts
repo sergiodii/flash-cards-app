@@ -36,10 +36,18 @@ export interface StudyQueueState {
   progress: ProgressMap;
   privateTags: PrivateTagsMap;
   pending: PendingReview | null;
+  canUndo: boolean;
   commit: (direction: SwipeDirection) => void;
   dismiss: () => void;
+  undo: () => void;
   reload: () => void;
   setCardTags: (flashcardId: string, tags: string[]) => void;
+}
+
+/** The last committed swipe, kept so it can be brought back once. */
+interface LastSwipe {
+  card: Flashcard;
+  index: number;
 }
 
 /**
@@ -61,6 +69,7 @@ export function useStudyQueue(): StudyQueueState {
   const [progress, setProgress] = useState<ProgressMap>({});
   const [privateTags, setPrivateTags] = useState<PrivateTagsMap>({});
   const [pending, setPending] = useState<PendingReview | null>(null);
+  const [lastSwipe, setLastSwipe] = useState<LastSwipe | null>(null);
 
   const mounted = useRef(true);
   const extending = useRef(false);
@@ -103,6 +112,7 @@ export function useStudyQueue(): StudyQueueState {
       seenIds.current.clear();
       setQueue([]);
       setCursor(0);
+      setLastSwipe(null);
       setLoading(true);
 
       try {
@@ -127,6 +137,7 @@ export function useStudyQueue(): StudyQueueState {
   const load = useCallback(async () => {
     setLoading(true);
     setError(null);
+    setLastSwipe(null);
     try {
       const cards = await fetchPage();
       if (!mounted.current) return;
@@ -188,6 +199,7 @@ export function useStudyQueue(): StudyQueueState {
       if (!current) return;
       lastSwipedId.current = current.id;
       setPending({ card: current, direction });
+      setLastSwipe({ card: current, index: cursor });
       setStats((previous) => ({
         ...previous,
         [direction]: previous[direction] + 1,
@@ -208,7 +220,7 @@ export function useStudyQueue(): StudyQueueState {
           console.warn("Failed to persist swipe", cause);
         });
     },
-    [current],
+    [current, cursor],
   );
 
   const dismiss = useCallback(() => {
@@ -244,6 +256,26 @@ export function useStudyQueue(): StudyQueueState {
     [],
   );
 
+  // One step back, only while the last card is still the previous slot (a
+  // cycle reload resets the cursor, which disables undo).
+  const canUndo =
+    lastSwipe !== null &&
+    pending === null &&
+    !loading &&
+    cursor === lastSwipe.index + 1 &&
+    queue[lastSwipe.index]?.id === lastSwipe.card.id;
+
+  const undo = useCallback(() => {
+    if (!canUndo || !lastSwipe) return;
+
+    const { card, index } = lastSwipe;
+    seenIds.current.delete(card.id);
+    lastSwipedId.current = null;
+    setPending(null);
+    setCursor(index);
+    setLastSwipe(null);
+  }, [canUndo, lastSwipe]);
+
   return {
     current,
     next,
@@ -253,8 +285,10 @@ export function useStudyQueue(): StudyQueueState {
     progress,
     privateTags,
     pending,
+    canUndo,
     commit,
     dismiss,
+    undo,
     reload,
     setCardTags,
   };
