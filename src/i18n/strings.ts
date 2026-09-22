@@ -9,6 +9,7 @@ export const strings = {
   study: {
     progress: (current: number, total: number) => `${current} / ${total}`,
     session: "This session",
+    addTag: "Tag",
     emptyTitle: "No cards yet",
     emptyBody:
       "Add a card with AI help and it will show up here to study.",
@@ -24,6 +25,15 @@ export const strings = {
   card: {
     tapHint: "Drag the card. Left to review, right to move on.",
     seen: (count: number) => `seen ${count}x`,
+  },
+  tagModal: {
+    title: "Tag this card",
+    search: "Tag",
+    searchPlaceholder: "Search or create a tag",
+    create: (tag: string) => `Create "${tag}"`,
+    done: "Done",
+    noResults: "No tags found.",
+    onCard: "on card",
   },
   audio: {
     play: "Play audio",

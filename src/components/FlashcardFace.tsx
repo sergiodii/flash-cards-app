@@ -1,6 +1,7 @@
 import { LinearGradient } from "expo-linear-gradient";
 import { StyleSheet, Text, View } from "react-native";
 
+import { mergeTags, normalizeTag } from "../domain/tagSelection";
 import { strings } from "../i18n/strings";
 import { colors, radii, shadow, spacing, typography } from "../theme/theme";
 import type { Flashcard, FlashcardProgress } from "../types/flashcard";
@@ -9,11 +10,19 @@ import { AudioButton } from "./AudioButton";
 interface FlashcardFaceProps {
   card: Flashcard;
   progress?: FlashcardProgress | null;
+  /** The caller's private tags for this card. */
+  privateTags?: string[];
 }
 
 /** The visible face of a card: the English phrase plus its metadata. */
-export function FlashcardFace({ card, progress }: FlashcardFaceProps) {
+export function FlashcardFace({
+  card,
+  progress,
+  privateTags,
+}: FlashcardFaceProps) {
   const seenCount = progress?.seenCount ?? 0;
+  const globalTags = new Set(card.tags.map(normalizeTag));
+  const tags = mergeTags(card.tags, privateTags ?? []).slice(0, 3);
 
   return (
     <LinearGradient
@@ -24,11 +33,17 @@ export function FlashcardFace({ card, progress }: FlashcardFaceProps) {
     >
       <View style={styles.header}>
         <View style={styles.tags}>
-          {card.tags.slice(0, 3).map((tag) => (
-            <View key={tag} style={styles.tag}>
-              <Text style={styles.tagText}>{tag}</Text>
-            </View>
-          ))}
+          {tags.map((tag) => {
+            const isPrivate = !globalTags.has(tag);
+            return (
+              <View
+                key={tag}
+                style={[styles.tag, isPrivate && styles.tagPrivate]}
+              >
+                <Text style={styles.tagText}>{tag}</Text>
+              </View>
+            );
+          })}
         </View>
         <Text style={styles.seen}>{strings.card.seen(seenCount)}</Text>
       </View>
@@ -70,6 +85,11 @@ const styles = StyleSheet.create({
     borderRadius: radii.pill,
     paddingHorizontal: spacing.sm,
     paddingVertical: spacing.xs,
+  },
+  tagPrivate: {
+    backgroundColor: colors.success + "33",
+    borderWidth: 1,
+    borderColor: colors.success,
   },
   tagText: {
     color: colors.text,

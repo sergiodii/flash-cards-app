@@ -20,3 +20,27 @@ export function toggleTag(selected: string[], tag: string): string[] {
 export function sortTags(tags: string[]): string[] {
   return [...tags].sort((a, b) => a.localeCompare(b));
 }
+
+/** Normalizes a tag the way it is stored: trimmed and lowercased. */
+export function normalizeTag(tag: string): string {
+  return tag.trim().toLowerCase();
+}
+
+/** Filters tags by a case-insensitive substring query, keeping A→Z order. */
+export function filterTags(tags: string[], query: string): string[] {
+  const needle = normalizeTag(query);
+  if (!needle) return sortTags(tags);
+  return sortTags(tags.filter((tag) => normalizeTag(tag).includes(needle)));
+}
+
+/** Merges tag lists into a unique, normalized A→Z list (empties dropped). */
+export function mergeTags(...lists: string[][]): string[] {
+  const unique = new Set<string>();
+  for (const list of lists) {
+    for (const tag of list) {
+      const normalized = normalizeTag(tag);
+      if (normalized) unique.add(normalized);
+    }
+  }
+  return sortTags([...unique]);
+}

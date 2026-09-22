@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   ActivityIndicator,
   Pressable,
@@ -7,6 +8,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { AddTagModal } from "../components/AddTagModal";
 import { CardDetailModal } from "../components/CardDetailModal";
 import { SwipeDeck } from "../components/SwipeDeck";
 import { useStudyQueue } from "../hooks/useStudyQueue";
@@ -15,6 +17,7 @@ import { colors, radii, spacing, typography } from "../theme/theme";
 
 export function StudyScreen() {
   const insets = useSafeAreaInsets();
+  const [tagVisible, setTagVisible] = useState(false);
   const {
     current,
     next,
@@ -22,19 +25,34 @@ export function StudyScreen() {
     error,
     stats,
     progress,
+    privateTags,
     pending,
     commit,
     dismiss,
     reload,
+    setCardTags,
   } = useStudyQueue();
 
   return (
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.headerLabel}>{strings.study.session}</Text>
-        <View style={styles.stats}>
-          <StatPill value={stats.left} color={colors.danger} />
-          <StatPill value={stats.right} color={colors.success} />
+        <View style={styles.headerActions}>
+          <Pressable
+            accessibilityRole="button"
+            disabled={!current}
+            onPress={() => setTagVisible(true)}
+            style={({ pressed }) => [
+              styles.tagButton,
+              (pressed || !current) && styles.tagButtonPressed,
+            ]}
+          >
+            <Text style={styles.tagButtonText}>{strings.study.addTag}</Text>
+          </Pressable>
+          <View style={styles.stats}>
+            <StatPill value={stats.left} color={colors.danger} />
+            <StatPill value={stats.right} color={colors.success} />
+          </View>
         </View>
       </View>
 
@@ -51,6 +69,16 @@ export function StudyScreen() {
         direction={pending?.direction ?? null}
         progress={pending ? progress[pending.card.id] ?? null : null}
         onClose={dismiss}
+      />
+
+      <AddTagModal
+        visible={tagVisible}
+        card={current}
+        privateTags={current ? privateTags[current.id] ?? [] : []}
+        onClose={() => setTagVisible(false)}
+        onChanged={(tags) => {
+          if (current) setCardTags(current.id, tags);
+        }}
       />
     </View>
   );
@@ -99,6 +127,8 @@ export function StudyScreen() {
         nextCard={next}
         progress={progress[current.id] ?? null}
         nextProgress={next ? progress[next.id] ?? null : null}
+        privateTags={privateTags[current.id] ?? []}
+        nextPrivateTags={next ? privateTags[next.id] ?? [] : []}
         onCommit={commit}
       />
     );
@@ -136,6 +166,26 @@ const styles = StyleSheet.create({
   stats: {
     flexDirection: "row",
     gap: spacing.sm,
+  },
+  headerActions: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
+  },
+  tagButton: {
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+    borderRadius: radii.pill,
+    borderWidth: 1,
+    borderColor: colors.accent,
+  },
+  tagButtonPressed: {
+    opacity: 0.6,
+  },
+  tagButtonText: {
+    color: colors.accent,
+    fontSize: 12,
+    fontWeight: "700",
   },
   pill: {
     minWidth: 40,

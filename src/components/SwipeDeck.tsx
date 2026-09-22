@@ -34,6 +34,8 @@ interface SwipeDeckProps {
   nextCard: Flashcard | null;
   progress?: FlashcardProgress | null;
   nextProgress?: FlashcardProgress | null;
+  privateTags?: string[];
+  nextPrivateTags?: string[];
   onCommit: (direction: SwipeDirection) => void;
 }
 
@@ -50,6 +52,8 @@ export function SwipeDeck({
   nextCard,
   progress,
   nextProgress,
+  privateTags,
+  nextPrivateTags,
   onCommit,
 }: SwipeDeckProps) {
   const { width } = useWindowDimensions();
@@ -157,13 +161,17 @@ export function SwipeDeck({
           pointerEvents="none"
           style={[styles.card, styles.peek, peekStyle]}
         >
-          <FlashcardFace card={nextCard} progress={nextProgress} />
+          <FlashcardFace
+            card={nextCard}
+            progress={nextProgress}
+            privateTags={nextPrivateTags}
+          />
         </Animated.View>
       ) : null}
 
       <GestureDetector gesture={pan}>
         <Animated.View style={[styles.card, styles.topCard, cardStyle]}>
-          <FlashcardFace card={card} progress={progress} />
+          <FlashcardFace card={card} progress={progress} privateTags={privateTags} />
           <Animated.View
             pointerEvents="none"
             style={[styles.borderOverlay, borderStyle]}

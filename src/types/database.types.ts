@@ -75,6 +75,35 @@ export type Database = {
         }
         Relationships: []
       }
+      user_flashcard_tags: {
+        Row: {
+          created_at: string
+          flashcard_id: string
+          tag: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          flashcard_id: string
+          tag: string
+          user_id?: string
+        }
+        Update: {
+          created_at?: string
+          flashcard_id?: string
+          tag?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_flashcard_tags_flashcard_id_fkey"
+            columns: ["flashcard_id"]
+            isOneToOne: false
+            referencedRelation: "flashcards"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_flashcards: {
         Row: {
           created_at: string

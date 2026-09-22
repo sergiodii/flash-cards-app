@@ -1,4 +1,11 @@
-import { isTagSelected, sortTags, toggleTag } from "./tagSelection";
+import {
+  filterTags,
+  isTagSelected,
+  mergeTags,
+  normalizeTag,
+  sortTags,
+  toggleTag,
+} from "./tagSelection";
 
 describe("toggleTag", () => {
   it("adds a missing tag at the end", () => {
@@ -36,5 +43,32 @@ describe("sortTags", () => {
     const tags = ["work", "idioms"];
     sortTags(tags);
     expect(tags).toEqual(["work", "idioms"]);
+  });
+});
+
+describe("normalizeTag", () => {
+  it("trims and lowercases", () => {
+    expect(normalizeTag("  Idioms ")).toBe("idioms");
+  });
+});
+
+describe("filterTags", () => {
+  const tags = ["daily", "idioms", "work"];
+
+  it("matches case-insensitive substrings in A→Z order", () => {
+    expect(filterTags(tags, "IO")).toEqual(["idioms"]);
+  });
+
+  it("returns every tag sorted when the query is empty", () => {
+    expect(filterTags(tags, "  ")).toEqual(["daily", "idioms", "work"]);
+  });
+});
+
+describe("mergeTags", () => {
+  it("dedupes and normalizes across lists", () => {
+    expect(mergeTags(["Idioms", "work"], ["idioms"], [])).toEqual([
+      "idioms",
+      "work",
+    ]);
   });
 });

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 import { useStudyPreferences } from "../context/StudyPreferencesContext";
 import { fetchStudyQueue, recordSwipe } from "../services/flashcards";
+import { fetchTagsForCards } from "../services/tags";
 import type {
   Flashcard,
   FlashcardProgress,
@@ -23,6 +24,9 @@ export interface PendingReview {
 
 export type ProgressMap = Record<string, FlashcardProgress>;
 
+/** The signed-in user's private tags, keyed by flashcard id. */
+export type PrivateTagsMap = Record<string, string[]>;
+
 export interface StudyQueueState {
   current: Flashcard | null;
   next: Flashcard | null;
@@ -30,10 +34,12 @@ export interface StudyQueueState {
   error: string | null;
   stats: StudyStats;
   progress: ProgressMap;
+  privateTags: PrivateTagsMap;
   pending: PendingReview | null;
   commit: (direction: SwipeDirection) => void;
   dismiss: () => void;
   reload: () => void;
+  setCardTags: (flashcardId: string, tags: string[]) => void;
 }
 
 /**
@@ -53,6 +59,7 @@ export function useStudyQueue(): StudyQueueState {
   const [error, setError] = useState<string | null>(null);
   const [stats, setStats] = useState<StudyStats>({ left: 0, right: 0 });
   const [progress, setProgress] = useState<ProgressMap>({});
+  const [privateTags, setPrivateTags] = useState<PrivateTagsMap>({});
   const [pending, setPending] = useState<PendingReview | null>(null);
 
   const mounted = useRef(true);
@@ -152,6 +159,27 @@ export function useStudyQueue(): StudyQueueState {
     }
   }, [fetchPage]);
 
+  // Load the caller's private tags for every card currently in the queue, so
+  // the deck and the tagging modal can show them without extra round-trips.
+  useEffect(() => {
+    const ids = queue.map((card) => card.id);
+    if (ids.length === 0) return;
+
+    let active = true;
+    void fetchTagsForCards(ids)
+      .then((tags) => {
+        if (!active) return;
+        setPrivateTags((previous) => ({ ...previous, ...tags }));
+      })
+      .catch((cause) => {
+        console.warn("Failed to load card tags", cause);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [queue]);
+
   const current = queue[cursor] ?? null;
   const next = queue[cursor + 1] ?? null;
 
@@ -209,6 +237,13 @@ export function useStudyQueue(): StudyQueueState {
     void load();
   }, [load]);
 
+  const setCardTags = useCallback(
+    (flashcardId: string, tags: string[]) => {
+      setPrivateTags((previous) => ({ ...previous, [flashcardId]: tags }));
+    },
+    [],
+  );
+
   return {
     current,
     next,
@@ -216,10 +251,12 @@ export function useStudyQueue(): StudyQueueState {
     error,
     stats,
     progress,
+    privateTags,
     pending,
     commit,
     dismiss,
     reload,
+    setCardTags,
   };
 }
 
