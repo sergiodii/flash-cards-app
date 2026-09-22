@@ -56,16 +56,19 @@ export type Database = {
       }
       study_preferences: {
         Row: {
+          only_mine: boolean
           selected_tags: string[]
           updated_at: string
           user_id: string
         }
         Insert: {
+          only_mine?: boolean
           selected_tags?: string[]
           updated_at?: string
           user_id?: string
         }
         Update: {
+          only_mine?: boolean
           selected_tags?: string[]
           updated_at?: string
           user_id?: string
@@ -122,9 +125,9 @@ export type Database = {
         Args: { p_left_count: number; p_right_count: number }
         Returns: number
       }
-      get_flashcard_stats: { Args: never; Returns: Json }
+      get_flashcard_stats: { Args: { p_only_mine?: boolean }; Returns: Json }
       next_flashcards: {
-        Args: { p_limit?: number; p_tags?: string[] }
+        Args: { p_limit?: number; p_only_mine?: boolean; p_tags?: string[] }
         Returns: {
           audio_path: string | null
           created_at: string

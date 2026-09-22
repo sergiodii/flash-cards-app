@@ -12,6 +12,7 @@ import {
 import { toggleTag } from "../domain/tagSelection";
 import {
   fetchStudyPreferences,
+  saveOnlyMine,
   saveSelectedTags,
 } from "../services/preferences";
 import { useAuth } from "./AuthContext";
@@ -19,12 +20,15 @@ import { useAuth } from "./AuthContext";
 export interface StudyPreferencesState {
   /** Tags to study; an empty list means "study every card". */
   selectedTags: string[];
+  /** When true, study and stats only include cards the user created. */
+  onlyMine: boolean;
   /** True while the selection is being loaded for the signed-in user. */
   loading: boolean;
   /** True while a toggle is being persisted. */
   saving: boolean;
   error: string | null;
   toggle: (tag: string) => void;
+  toggleOnlyMine: () => void;
   isSelected: (tag: string) => boolean;
 }
 
@@ -47,6 +51,7 @@ export function StudyPreferencesProvider({
   const userId = session?.user.id ?? null;
 
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [onlyMine, setOnlyMine] = useState(false);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -54,10 +59,16 @@ export function StudyPreferencesProvider({
   // Mirror of the latest selection so `toggle` can compute the next value
   // without depending on (and being re-created by) every state change.
   const selectedRef = useRef<string[]>([]);
+  const onlyMineRef = useRef(false);
 
   const applySelection = useCallback((tags: string[]) => {
     selectedRef.current = tags;
     setSelectedTags(tags);
+  }, []);
+
+  const applyOnlyMine = useCallback((value: boolean) => {
+    onlyMineRef.current = value;
+    setOnlyMine(value);
   }, []);
 
   useEffect(() => {
@@ -66,6 +77,7 @@ export function StudyPreferencesProvider({
     const run = async () => {
       if (!userId) {
         applySelection([]);
+        applyOnlyMine(false);
         setError(null);
         setLoading(false);
         return;
@@ -76,6 +88,7 @@ export function StudyPreferencesProvider({
         const preferences = await fetchStudyPreferences();
         if (!active) return;
         applySelection(preferences.selectedTags);
+        applyOnlyMine(preferences.onlyMine);
         setError(null);
       } catch (cause) {
         if (!active) return;
@@ -89,7 +102,7 @@ export function StudyPreferencesProvider({
     return () => {
       active = false;
     };
-  }, [userId, applySelection]);
+  }, [userId, applySelection, applyOnlyMine]);
 
   const toggle = useCallback(
     (tag: string) => {
@@ -110,14 +123,48 @@ export function StudyPreferencesProvider({
     [applySelection],
   );
 
+  const toggleOnlyMine = useCallback(() => {
+    const previous = onlyMineRef.current;
+    const next = !previous;
+
+    applyOnlyMine(next);
+    setSaving(true);
+    setError(null);
+
+    void saveOnlyMine(next)
+      .catch((cause) => {
+        applyOnlyMine(previous);
+        setError(cause instanceof Error ? cause.message : String(cause));
+      })
+      .finally(() => setSaving(false));
+  }, [applyOnlyMine]);
+
   const isSelected = useCallback(
     (tag: string) => selectedTags.includes(tag),
     [selectedTags],
   );
 
   const value = useMemo<StudyPreferencesState>(
-    () => ({ selectedTags, loading, saving, error, toggle, isSelected }),
-    [selectedTags, loading, saving, error, toggle, isSelected],
+    () => ({
+      selectedTags,
+      onlyMine,
+      loading,
+      saving,
+      error,
+      toggle,
+      toggleOnlyMine,
+      isSelected,
+    }),
+    [
+      selectedTags,
+      onlyMine,
+      loading,
+      saving,
+      error,
+      toggle,
+      toggleOnlyMine,
+      isSelected,
+    ],
   );
 
   return (

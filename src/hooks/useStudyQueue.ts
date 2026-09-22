@@ -45,7 +45,7 @@ export interface StudyQueueState {
  * cleared so the deck starts over.
  */
 export function useStudyQueue(): StudyQueueState {
-  const { selectedTags } = useStudyPreferences();
+  const { selectedTags, onlyMine } = useStudyPreferences();
 
   const [queue, setQueue] = useState<Flashcard[]>([]);
   const [cursor, setCursor] = useState(0);
@@ -68,8 +68,8 @@ export function useStudyQueue(): StudyQueueState {
   }, []);
 
   const fetchPage = useCallback(
-    () => fetchStudyQueue(QUEUE_SIZE, selectedTags),
-    [selectedTags],
+    () => fetchStudyQueue(QUEUE_SIZE, selectedTags, onlyMine),
+    [selectedTags, onlyMine],
   );
 
   const applyFirstPage = useCallback((cards: Flashcard[]) => {

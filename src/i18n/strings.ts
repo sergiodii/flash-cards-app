@@ -107,6 +107,8 @@ export const strings = {
     title: "Settings",
     subtitle:
       "Choose the tags to study. With none selected, you study every card.",
+    onlyMine: "Only my cards",
+    onlyMineHint: "Study and progress only count the cards you added.",
     allCards: "All cards (no filter)",
     loading: "Loading your tags...",
     errorTitle: "Could not load your tags",

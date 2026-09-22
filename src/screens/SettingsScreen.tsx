@@ -11,6 +11,7 @@ import {
 
 import { TagToggleRow } from "../components/TagToggleRow";
 import { useStudyPreferences } from "../context/StudyPreferencesContext";
+import { sortTags } from "../domain/tagSelection";
 import { strings } from "../i18n/strings";
 import { fetchFlashcardStats } from "../services/flashcards";
 import { colors, radii, spacing, typography } from "../theme/theme";
@@ -18,9 +19,11 @@ import { colors, radii, spacing, typography } from "../theme/theme";
 export function SettingsScreen() {
   const {
     selectedTags,
+    onlyMine,
     saving,
     error: saveError,
     toggle,
+    toggleOnlyMine,
     isSelected,
   } = useStudyPreferences();
 
@@ -48,30 +51,7 @@ export function SettingsScreen() {
     }, [load]),
   );
 
-  if (loading) {
-    return (
-      <View style={styles.centered}>
-        <ActivityIndicator color={colors.accent} size="large" />
-        <Text style={styles.stateBody}>{strings.settings.loading}</Text>
-      </View>
-    );
-  }
-
-  if (error) {
-    return (
-      <View style={styles.centered}>
-        <Text style={styles.stateTitle}>{strings.settings.errorTitle}</Text>
-        <Text style={styles.stateBody}>{error}</Text>
-        <Pressable
-          accessibilityRole="button"
-          onPress={() => void load()}
-          style={({ pressed }) => [styles.retry, pressed && styles.pressed]}
-        >
-          <Text style={styles.retryText}>{strings.settings.retry}</Text>
-        </Pressable>
-      </View>
-    );
-  }
+  const sortedTags = sortTags(tags);
 
   return (
     <ScrollView
@@ -82,23 +62,16 @@ export function SettingsScreen() {
       <Text style={styles.title}>{strings.settings.title}</Text>
       <Text style={styles.subtitle}>{strings.settings.subtitle}</Text>
 
-      {tags.length === 0 ? (
-        <View style={styles.empty}>
-          <Text style={styles.stateTitle}>{strings.settings.emptyTitle}</Text>
-          <Text style={styles.stateBody}>{strings.settings.emptyBody}</Text>
-        </View>
-      ) : (
-        <View style={styles.card}>
-          {tags.map((tag) => (
-            <TagToggleRow
-              key={tag}
-              label={tag}
-              onToggle={() => toggle(tag)}
-              value={isSelected(tag)}
-            />
-          ))}
-        </View>
-      )}
+      <View style={styles.card}>
+        <TagToggleRow
+          label={strings.settings.onlyMine}
+          onToggle={toggleOnlyMine}
+          value={onlyMine}
+        />
+      </View>
+      <Text style={styles.hint}>{strings.settings.onlyMineHint}</Text>
+
+      {renderTags()}
 
       <Text style={styles.selection}>
         {selectedTags.length === 0
@@ -114,6 +87,55 @@ export function SettingsScreen() {
       ) : null}
     </ScrollView>
   );
+
+  function renderTags() {
+    if (loading) {
+      return (
+        <View style={styles.empty}>
+          <ActivityIndicator color={colors.accent} size="large" />
+          <Text style={styles.stateBody}>{strings.settings.loading}</Text>
+        </View>
+      );
+    }
+
+    if (error) {
+      return (
+        <View style={styles.empty}>
+          <Text style={styles.stateTitle}>{strings.settings.errorTitle}</Text>
+          <Text style={styles.stateBody}>{error}</Text>
+          <Pressable
+            accessibilityRole="button"
+            onPress={() => void load()}
+            style={({ pressed }) => [styles.retry, pressed && styles.pressed]}
+          >
+            <Text style={styles.retryText}>{strings.settings.retry}</Text>
+          </Pressable>
+        </View>
+      );
+    }
+
+    if (sortedTags.length === 0) {
+      return (
+        <View style={styles.empty}>
+          <Text style={styles.stateTitle}>{strings.settings.emptyTitle}</Text>
+          <Text style={styles.stateBody}>{strings.settings.emptyBody}</Text>
+        </View>
+      );
+    }
+
+    return (
+      <View style={styles.card}>
+        {sortedTags.map((tag) => (
+          <TagToggleRow
+            key={tag}
+            label={tag}
+            onToggle={() => toggle(tag)}
+            value={isSelected(tag)}
+          />
+        ))}
+      </View>
+    );
+  }
 }
 
 const styles = StyleSheet.create({
@@ -124,13 +146,11 @@ const styles = StyleSheet.create({
   content: {
     padding: spacing.lg,
   },
-  centered: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    gap: spacing.md,
-    paddingHorizontal: spacing.lg,
-    backgroundColor: colors.background,
+  hint: {
+    color: colors.textMuted,
+    fontSize: typography.caption,
+    marginTop: spacing.sm,
+    marginBottom: spacing.md,
   },
   title: {
     color: colors.text,

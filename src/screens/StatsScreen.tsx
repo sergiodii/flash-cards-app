@@ -9,6 +9,7 @@ import {
   View,
 } from "react-native";
 
+import { useStudyPreferences } from "../context/StudyPreferencesContext";
 import { strings } from "../i18n/strings";
 import { fetchFlashcardStats } from "../services/flashcards";
 import { colors, radii, spacing, typography } from "../theme/theme";
@@ -21,6 +22,7 @@ import {
 } from "../types/stats";
 
 export function StatsScreen() {
+  const { onlyMine } = useStudyPreferences();
   const [stats, setStats] = useState<FlashcardStats>(EMPTY_STATS);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -29,13 +31,13 @@ export function StatsScreen() {
     setLoading(true);
     setError(null);
     try {
-      setStats(await fetchFlashcardStats());
+      setStats(await fetchFlashcardStats(onlyMine));
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : String(cause));
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [onlyMine]);
 
   // Refresh every time the screen gains focus so the numbers stay current
   // after a study session.

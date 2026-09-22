@@ -14,15 +14,18 @@ import { toFlashcardStats, type FlashcardStats } from "../types/stats";
  *
  * Cards are global; the weight comes from the caller's own progress.
  * When `tags` is non-empty, only cards sharing at least one tag are returned;
- * an empty list studies the whole deck.
+ * an empty list studies the whole deck. `onlyMine` limits the queue to cards
+ * the caller created.
  */
 export async function fetchStudyQueue(
   limit = 20,
   tags: string[] = [],
+  onlyMine = false,
 ): Promise<Flashcard[]> {
   const { data, error } = await getSupabase().rpc("next_flashcards", {
     p_limit: limit,
     p_tags: tags,
+    p_only_mine: onlyMine,
   });
 
   if (error) {
@@ -86,8 +89,12 @@ export async function listFlashcards(): Promise<Flashcard[]> {
 }
 
 /** Aggregated progress for the signed-in user (totals plus per-tag). */
-export async function fetchFlashcardStats(): Promise<FlashcardStats> {
-  const { data, error } = await getSupabase().rpc("get_flashcard_stats");
+export async function fetchFlashcardStats(
+  onlyMine = false,
+): Promise<FlashcardStats> {
+  const { data, error } = await getSupabase().rpc("get_flashcard_stats", {
+    p_only_mine: onlyMine,
+  });
 
   if (error) {
     throw new Error(`Failed to load stats: ${error.message}`);

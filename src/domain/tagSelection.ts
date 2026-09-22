@@ -15,3 +15,8 @@ export function toggleTag(selected: string[], tag: string): string[] {
     ? selected.filter((item) => item !== tag)
     : [...selected, tag];
 }
+
+/** Returns a new list sorted A→Z, leaving the input untouched. */
+export function sortTags(tags: string[]): string[] {
+  return [...tags].sort((a, b) => a.localeCompare(b));
+}

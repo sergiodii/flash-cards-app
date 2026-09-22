@@ -1,4 +1,4 @@
-import { isTagSelected, toggleTag } from "./tagSelection";
+import { isTagSelected, sortTags, toggleTag } from "./tagSelection";
 
 describe("toggleTag", () => {
   it("adds a missing tag at the end", () => {
@@ -20,5 +20,21 @@ describe("isTagSelected", () => {
   it("reports membership", () => {
     expect(isTagSelected(["idioms"], "idioms")).toBe(true);
     expect(isTagSelected(["idioms"], "work")).toBe(false);
+  });
+});
+
+describe("sortTags", () => {
+  it("sorts alphabetically from A to Z", () => {
+    expect(sortTags(["work", "idioms", "daily"])).toEqual([
+      "daily",
+      "idioms",
+      "work",
+    ]);
+  });
+
+  it("does not mutate the input", () => {
+    const tags = ["work", "idioms"];
+    sortTags(tags);
+    expect(tags).toEqual(["work", "idioms"]);
   });
 });
